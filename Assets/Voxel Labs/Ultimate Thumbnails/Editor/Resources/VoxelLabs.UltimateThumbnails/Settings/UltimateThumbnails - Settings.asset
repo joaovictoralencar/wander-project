@@ -45,8 +45,8 @@ MonoBehaviour:
     spritesFaceCamera: 1
     inverseSpriteDirection: 0
   iconPreviewSettings:
-    isEnable: 1
-    enhanceVisibility: 0
+    isEnable: 0
+    enhanceVisibility: 1
     backgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     gridViewSettings:
       paddingPercentage: 0.2
