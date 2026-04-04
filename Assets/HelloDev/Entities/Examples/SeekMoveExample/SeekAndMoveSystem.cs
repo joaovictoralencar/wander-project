@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HelloDev.Entities.Components;
 using Unity.Burst;
 using Unity.Collections;
@@ -65,14 +66,14 @@ namespace HelloDev.Entities.Examples
 
         public void FixedExecute(EcsWorld world, EcsCommandBuffer commandBuffer, float fixedDeltaTime)
         {
-            var ids = world.GetEntitiesWithMask(_requiredMask);
+            List<int> ids = world.GetEntitiesWithMask(_requiredMask);
             if (ids.Count == 0) return;
 
-            var entityIds = new NativeArray<int>(ids.Count, Allocator.TempJob);
+            NativeArray<int> entityIds = new NativeArray<int>(ids.Count, Allocator.TempJob);
             for (int i = 0; i < ids.Count; i++)
                 entityIds[i] = ids[i];
 
-            var job = new SeekAndMoveJob
+            SeekAndMoveJob job = new SeekAndMoveJob
             {
                 EntityIds = entityIds,
                 TargetPosition = TargetPosition,
