@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4c109873533c75b4ea9aa65c96e2a2bb
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Props/KenneyGraveyard/License.txt
+  uploadId: 761876

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a025a6de903b3424b852b8b0934a84c6
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/DeepStats Configuration/Tags/Spear.asset
+  uploadId: 761876

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: fbcd7c253b4c551498e308d5346f8c31
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Scripts/User/DeepStatsInstance.cs
+  uploadId: 761876

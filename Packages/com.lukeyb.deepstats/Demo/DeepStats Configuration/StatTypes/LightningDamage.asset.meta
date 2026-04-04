@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 066f57d3fdb761742898893e72e71a0d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/DeepStats Configuration/StatTypes/LightningDamage.asset
+  uploadId: 761876

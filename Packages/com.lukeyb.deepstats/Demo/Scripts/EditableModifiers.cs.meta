@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 7a56ce0d0f18d5142bc38b534f6a61f1
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Scripts/EditableModifiers.cs
+  uploadId: 761876

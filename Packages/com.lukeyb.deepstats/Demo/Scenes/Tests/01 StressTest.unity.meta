@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0b387272b693d874285f7b42d06e44ec
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Scenes/Tests/01 StressTest.unity
+  uploadId: 761876

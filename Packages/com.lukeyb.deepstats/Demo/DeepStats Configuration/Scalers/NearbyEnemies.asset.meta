@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4573770d5b5e2b14881296cf94ec41de
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/DeepStats Configuration/Scalers/NearbyEnemies.asset
+  uploadId: 761876

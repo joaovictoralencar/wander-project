@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 654f82a97d5242343b77fe9030762c15
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/DeepStats Configuration/Tags/Unarmed.asset
+  uploadId: 761876

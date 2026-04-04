@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6042acff7bc1c2c4dbcb2a1c0ca938a8
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Scenes/Samples/03 Equipment Swapping.unity
+  uploadId: 761876

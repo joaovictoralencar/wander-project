@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c8a317d98b75c6a42bd49c5214b3f432
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Scenes/Tests/03 AddRemoveTest.unity
+  uploadId: 761876

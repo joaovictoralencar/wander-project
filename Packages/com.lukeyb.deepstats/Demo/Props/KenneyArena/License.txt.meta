@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c7173833376b2b647bcf94721bf7114b
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Props/KenneyArena/License.txt
+  uploadId: 761876

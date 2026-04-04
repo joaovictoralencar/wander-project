@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 138f254df2fa6754e82464a1d3baf2c2
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/README.txt
+  uploadId: 761876

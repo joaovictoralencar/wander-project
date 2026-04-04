@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1d90f1fc9f08d9743b63f888f6520546
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/DeepStats Configuration/StatTypes/ArmourRating.asset
+  uploadId: 761876

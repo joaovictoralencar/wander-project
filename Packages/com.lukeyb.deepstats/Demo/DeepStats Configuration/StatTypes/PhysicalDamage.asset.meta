@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b999c99eca0a45b47a024ddfebd09cbb
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/DeepStats Configuration/StatTypes/PhysicalDamage.asset
+  uploadId: 761876

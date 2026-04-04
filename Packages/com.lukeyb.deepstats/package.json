@@ -1,0 +1,16 @@
+{
+  "name": "com.lukeyb.deepstats",
+  "version": "1.1.2",
+  "displayName": "DeepStats",
+  "description": "Deep Stats is a high performance, highly flexible stat and modifier authoring system for Unity",
+  "unity": "2022.3",
+  "documentationUrl": "https://lukebolly.github.io/deepstats.github.io/",
+  "changelogUrl": "https://lukebolly.github.io/deepstats.github.io/docs/changelog",
+  "license": "Standard Unity Asset Store EULA",
+  "licensesUrl": "https://unity.com/legal/as-terms",
+  "dependencies": {
+    "com.unity.burst": "1.8.17",
+    "com.unity.collections": "2.1.4",
+    "com.unity.mathematics": "1.2.6"
+  }
+}

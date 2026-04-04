@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 5ba06e2a0ff2ed24ea12a9688559d8df
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Editor/DeepStatsDeleteDetector.cs
+  uploadId: 761876

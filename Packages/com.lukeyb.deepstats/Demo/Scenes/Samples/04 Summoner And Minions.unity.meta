@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6a7e9059a6a8c374fbcc8212f9effccf
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Scenes/Samples/04 Summoner And Minions.unity
+  uploadId: 761876

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6ad89150a683c7a45b5b2958f60e3d43
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Props/KenneyArena/Tree.prefab
+  uploadId: 761876

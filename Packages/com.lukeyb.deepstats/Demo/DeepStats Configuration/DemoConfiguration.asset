@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3d80bc025143f242a45279d53e03216, type: 3}
+  m_Name: DemoConfiguration
+  m_EditorClassIdentifier: 
+  StatTypes:
+  - {fileID: 11400000, guid: 615fb5739e283f240ba40cd6303e152c, type: 2}
+  - {fileID: 11400000, guid: 1d90f1fc9f08d9743b63f888f6520546, type: 2}
+  - {fileID: 11400000, guid: 975ec1dd351bf334ba9327aa49d3fbfe, type: 2}
+  - {fileID: 11400000, guid: 7f3d9db1286c6814f9622438a51248ed, type: 2}
+  - {fileID: 11400000, guid: 095ba88bee811dd4aacb236a28e2ed79, type: 2}
+  - {fileID: 11400000, guid: 50fb126b5eeab26468e8bec162fe59fe, type: 2}
+  - {fileID: 11400000, guid: 6b252762e90081546b7c6f3550cd6e94, type: 2}
+  - {fileID: 11400000, guid: b999c99eca0a45b47a024ddfebd09cbb, type: 2}
+  - {fileID: 11400000, guid: bf491f5cb5baf6145816576b20c816c2, type: 2}
+  - {fileID: 11400000, guid: ae2dfba1ee8fdb940b125ea9719433a5, type: 2}
+  - {fileID: 11400000, guid: 066f57d3fdb761742898893e72e71a0d, type: 2}
+  - {fileID: 11400000, guid: e0d79b7cd692bf245aaf5cb7b9ed1c3f, type: 2}
+  - {fileID: 11400000, guid: 20e2a7cde7ec39d4189652700e85be57, type: 2}
+  - {fileID: 11400000, guid: 952768f9dbf556249b4e752a57cd4536, type: 2}
+  ModifierScalers:
+  - {fileID: 11400000, guid: 93981405fe1014649a725219da6ba35c, type: 2}
+  - {fileID: 11400000, guid: f56ee1565343b8c438c3f6623af3dc2d, type: 2}
+  - {fileID: 11400000, guid: 4573770d5b5e2b14881296cf94ec41de, type: 2}
+  ModifierTags:
+  - {fileID: 11400000, guid: 4c8834283d1ab7144837b9099547c132, type: 2}
+  - {fileID: 11400000, guid: 9b0e734cc8db3bc42b39ca8906e17b7d, type: 2}
+  - {fileID: 11400000, guid: a025a6de903b3424b852b8b0934a84c6, type: 2}
+  - {fileID: 11400000, guid: d365cd36a4a57794eac672d70aa73a34, type: 2}
+  - {fileID: 11400000, guid: 654f82a97d5242343b77fe9030762c15, type: 2}

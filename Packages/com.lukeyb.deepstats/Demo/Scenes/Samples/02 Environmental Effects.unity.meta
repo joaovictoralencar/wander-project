@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 283652bbeda171c488d157ad1b5aaf04
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Scenes/Samples/02 Environmental Effects.unity
+  uploadId: 761876

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8b5f63b14b5363d439df2d47daaed438
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 296264
+  packageName: DeepStats - Highly Flexible, High Performance Stat System
+  packageVersion: 1.1.2
+  assetPath: Packages/com.lukeyb.deepstats/Demo/Scenes/Tests/05 TemplateTests.unity
+  uploadId: 761876
