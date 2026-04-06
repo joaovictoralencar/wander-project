@@ -25,34 +25,47 @@ namespace HelloDev.Entities
         public Entity CreateEntity()
         {
             var id = _freeIds.Count > 0 ? _freeIds.Dequeue() : _nextEntityId++;
+            var entity = new Entity(id, _generations[id]);
+            EcsDebug.Log($"Entity({entity.Id}, gen={entity.Generation}) created");
+            return entity;
+        }
 
-            // The entity is born into whatever generation this slot is currently on.
-            return new Entity(id, _generations[id]);
+        public Entity CreateEntity(IBridge bridge)
+        {
+            var id = _freeIds.Count > 0 ? _freeIds.Dequeue() : _nextEntityId++;
+            if (EcsSystemRunner.Instance == null)
+            {
+                Debug.LogWarning($"Creating entity {id} with a bridge before EcsSystemRunner is initialized. This entity will not be registered with the bridge and may not behave as expected.");
+            }
+            else
+            {
+                if (bridge is not MonoBehaviour monoBehaviour) return new Entity(id, _generations[id]);
+                foreach (var b in monoBehaviour.GetComponentsInChildren<IBridge>())
+                    EcsSystemRunner.Instance.RegisterBridge(b);
+            }
+
+            var entity = new Entity(id, _generations[id]);
+            EcsDebug.Log($"Entity({entity.Id}, gen={entity.Generation}) created (with bridge)");
+            return entity;
         }
 
         public void DestroyEntity(Entity entity)
         {
-            // Validate first — refuse to destroy a stale or already-dead entity.
             if (!IsAlive(entity))
             {
                 Debug.LogWarning($"Tried to destroy entity {entity.Id} but it's already dead.");
                 return;
             }
 
-            // Increment the generation — any old references to this ID are now stale.
-            _generations[entity.Id]++;
+            EcsDebug.Log($"Entity({entity.Id}, gen={entity.Generation}) destroyed");
 
-            // Clear the signature so this slot no longer matches any query.
+            _generations[entity.Id]++;
             _signatures[entity.Id] = 0;
 
-            // Mark all components as absent — the data stays in the array
-            // but will be overwritten when this slot is reused.
             foreach (var storage in _storages.Values)
                 storage.RemoveComponent(entity.Id);
 
             _freeIds.Enqueue(entity.Id);
-
-            // Purge any cached filter lists that included this entity.
             InvalidateCacheFor(entity.Id);
         }
 
@@ -73,8 +86,6 @@ namespace HelloDev.Entities
         }
 
         #region Component Registry
-
-        public readonly ComponentRegistry Registry = new();
 
         // The current component signature for each entity slot.
         private readonly int[] _signatures = new int[EcsRuntime.MaxEntities];
@@ -112,20 +123,19 @@ namespace HelloDev.Entities
         public void AddComponent<T>(Entity entity, T component) where T : unmanaged
         {
             GetOrCreateComponentStorage<T>().Set(entity.Id, component);
-
-            // Update this entity's signature and refresh any affected cache entries.
-            int bit = Registry.GetOrRegister(typeof(T));
+            int bit = ComponentRegistry.GetOrRegister(typeof(T));
             _signatures[entity.Id] |= (1 << bit);
             InvalidateCacheFor(entity.Id);
+            EcsDebug.Log($"Entity({entity.Id}) ← {typeof(T).Name}");
         }
 
         public void RemoveComponent<T>(Entity entity) where T : unmanaged
         {
             GetOrCreateComponentStorage<T>().RemoveComponent(entity.Id);
-
-            int bit = Registry.GetOrRegister(typeof(T));
-            _signatures[entity.Id] &= ~(1 << bit); // clear the bit
+            int bit = ComponentRegistry.GetOrRegister(typeof(T));
+            _signatures[entity.Id] &= ~(1 << bit);
             InvalidateCacheFor(entity.Id);
+            EcsDebug.Log($"Entity({entity.Id}) ✕ {typeof(T).Name}");
         }
 
         public bool HasComponent<T>(Entity entity) where T : unmanaged
@@ -140,6 +150,7 @@ namespace HelloDev.Entities
                 Debug.LogWarning($"GetComponent<{typeof(T).Name}> called on dead entity {entity}. Returning default.");
                 return default;
             }
+
             return GetOrCreateComponentStorage<T>().Get(entity.Id);
         }
 
@@ -149,6 +160,16 @@ namespace HelloDev.Entities
             // Call AddComponent first if the entity does not yet have this component.
             Debug.Assert(HasComponent<T>(entity), $"SetComponent<{typeof(T).Name}> called on entity {entity} which does not have that component. Use AddComponent instead.");
             GetOrCreateComponentStorage<T>().Set(entity.Id, value);
+        }
+
+        // Adds the component if the entity doesn't have it yet, otherwise updates it in place.
+        // Use this in bridges that own an output component so initialization order never matters.
+        public void SetOrAddComponent<T>(Entity entity, T value) where T : unmanaged
+        {
+            if (HasComponent<T>(entity))
+                GetOrCreateComponentStorage<T>().Set(entity.Id, value);
+            else
+                AddComponent(entity, value);
         }
 
         // Reconstructs a valid Entity handle from a raw ID returned by GetEntitiesWithMask.
@@ -190,9 +211,20 @@ namespace HelloDev.Entities
             method.Invoke(this, new object[] { entity });
         }
 
+        public bool HasComponentBoxed(Entity entity, Type componentType)
+        {
+            var method = _hasComponentMethodCache.GetOrAdd(componentType,
+                t => typeof(EcsWorld)
+                    .GetMethod(nameof(HasComponent), BindingFlags.Public | BindingFlags.Instance)!
+                    .MakeGenericMethod(t));
+
+            return (bool)method.Invoke(this, new object[] { entity });
+        }
+
         // Reflection cache — built once per component type, reused every flush.
         private readonly MethodCache _addComponentMethodCache = new();
         private readonly MethodCache _removeComponentMethodCache = new();
+        private readonly MethodCache _hasComponentMethodCache = new();
 
         private class MethodCache
         {

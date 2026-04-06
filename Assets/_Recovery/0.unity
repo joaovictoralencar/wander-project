@@ -704,11 +704,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 497228270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &1719360119 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 4957605393579145647, guid: 4f46098734d87e24490aef9267915ad2, type: 3}
-  m_PrefabInstance: {fileID: 1077063901}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1736579021
 GameObject:
   m_ObjectHideFlags: 0
@@ -827,10 +822,7 @@ GameObject:
   - component: {fileID: 1841136237}
   - component: {fileID: 1841136238}
   - component: {fileID: 1841136239}
-  - component: {fileID: 1841136242}
-  - component: {fileID: 1841136241}
-  - component: {fileID: 1841136243}
-  - component: {fileID: 1841136244}
+  - component: {fileID: 1841136240}
   m_Layer: 0
   m_Name: pfb_Player
   m_TagString: Untagged
@@ -905,19 +897,7 @@ MonoBehaviour:
       m_Calls: []
   m_ActionEvents:
   - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1841136241}
-        m_TargetAssemblyTypeName: Wander.Player.PlayerInputBridge, WanderProject
-        m_MethodName: OnMove
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
     m_ActionId: 351f2ccd-1f9f-44bf-9bec-d62ac5c5f408
     m_ActionName: 'Player/Move[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]'
   - m_PersistentCalls:
@@ -937,19 +917,7 @@ MonoBehaviour:
     m_ActionId: 27c5f898-bc57-4ee1-8800-db469aca5fe3
     m_ActionName: 'Player/Crouch[/Keyboard/c]'
   - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1841136241}
-        m_TargetAssemblyTypeName: Wander.Player.PlayerInputBridge, WanderProject
-        m_MethodName: OnJump
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
     m_ActionId: f1ba0d36-48eb-4cd5-b651-1c94a6531f70
     m_ActionName: 'Player/Jump[/Keyboard/space]'
   - m_PersistentCalls:
@@ -1005,11 +973,11 @@ MonoBehaviour:
     m_ActionId: 9caa3d8a-6b2f-4e8e-8bad-6ede561bd9be
     m_ActionName: UI/TrackedDeviceOrientation
   m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
+  m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!114 &1841136241
+--- !u!114 &1841136240
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1018,104 +986,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 1841136236}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c8f5f2192e3ff3409ff68d1b256660f, type: 3}
+  m_Script: {fileID: 11500000, guid: 9e6a33620ae2fea4fa3024527186f21d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: WanderProject::Wander.PlayerInputBridge
+  m_EditorClassIdentifier: WanderProject::Wander.Player.PlayerCharacterBridge
+  _walkSpeed: 2
+  _runSpeed: 5
+  _jumpForce: 8
+  _gravity: 15
+  _rotationSpeed: 12
   _cameraTransform: {fileID: 330585546}
---- !u!114 &1841136242
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1841136236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18e549bdb9ef08f4e8a8e02ad6673ba9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: HelloDev.Entities::HelloDev.Entities.EcsEntityRoot
-  Components:
-  - rid: 2979206050602025087
-  - rid: 2979206050602025089
-  - rid: 2979206050602025093
-  - rid: 2979206050602025098
-  Systems:
-  - rid: 2979206050602025091
-  - rid: 2979206050602025097
-  references:
-    version: 2
-    RefIds:
-    - rid: 2979206050602025087
-      type: {class: MoveInputInitializer, ns: Wander.Character.Components, asm: WanderProject}
-      data:
-        Component:
-          Direction:
-            x: 0
-            y: 0
-            z: 0
-          Sprint: 0
-          Jump: 0
-    - rid: 2979206050602025089
-      type: {class: MovementStatsInitializer, ns: Wander.Character.Components, asm: WanderProject}
-      data:
-        Component:
-          WalkSpeed: 4
-          RunSpeed: 8
-          JumpForce: 7
-          Gravity: 18
-          RotationSpeed: 12
-    - rid: 2979206050602025091
-      type: {class: CharacterPhysicsSystem, ns: Wander.Character.Systems, asm: WanderProject}
-      data: 
-    - rid: 2979206050602025093
-      type: {class: MovementStateInitializer, ns: Wander.Character.Components, asm: WanderProject}
-      data:
-        Component:
-          Velocity:
-            x: 0
-            y: 0
-            z: 0
-          Speed: 0
-          IsGrounded: 1
-    - rid: 2979206050602025097
-      type: {class: AnimationStateSystem, ns: Wander.Character.Systems, asm: WanderProject}
-      data: 
-    - rid: 2979206050602025098
-      type: {class: AnimationStateInitializer, ns: Wander.Character.Components, asm: WanderProject}
-      data:
-        Component:
-          SpeedBlend: 0
-          IsGrounded: 0
-          TriggerJump: 0
---- !u!114 &1841136243
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1841136236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3073897e4462b3948b95368d0d0cafa2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WanderProject::Wander.Player.MoveEntityBridge
---- !u!114 &1841136244
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1841136236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 076681eb1671c504c9a3dce5c42ce433, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WanderProject::Wander.Player.AnimationBridge
   _speedParam: Speed
   _groundedParam: Grounded
   _jumpParam: Jump
   _freeFallParam: FreeFall
-  _animator: {fileID: 1719360119}
+  timeScale: 1
 --- !u!1001 &5598815333801541452
 PrefabInstance:
   m_ObjectHideFlags: 0
