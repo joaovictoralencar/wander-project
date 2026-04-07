@@ -24,7 +24,21 @@ namespace HelloDev.Entities
 
         public Entity CreateEntity()
         {
-            var id = _freeIds.Count > 0 ? _freeIds.Dequeue() : _nextEntityId++;
+            int id;
+            if (_freeIds.Count > 0)
+            {
+                id = _freeIds.Dequeue();
+            }
+            else
+            {
+                if (_nextEntityId >= _maxEntities)
+                {
+                    Debug.LogError($"[ECS] Entity limit reached ({_maxEntities}). Cannot create more entities.");
+                    return Entity.Null;
+                }
+                id = _nextEntityId++;
+            }
+
             var entity = new Entity(id, _generations[id]);
             EcsDebug.Log($"Entity({entity.Id}, gen={entity.Generation}) created");
             return entity;
@@ -129,6 +143,12 @@ namespace HelloDev.Entities
             if (!IsAlive(entity))
             {
                 Debug.LogWarning($"GetComponent<{typeof(T).Name}> called on dead entity {entity}. Returning default.");
+                return default;
+            }
+
+            if (!HasComponent<T>(entity))
+            {
+                Debug.LogWarning($"GetComponent<{typeof(T).Name}> called on entity {entity} which doesn't have that component. Returning default.");
                 return default;
             }
 

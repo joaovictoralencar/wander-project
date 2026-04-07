@@ -98,10 +98,11 @@ namespace HelloDev.Entities
         {
             _world.ClearAllEvents();
 
-            foreach (var bridge in _bridges) bridge.PushToEcs();
+            for (int i = 0; i < _bridges.Count; i++) _bridges[i].PushToEcs();
 
-            foreach (var system in _systems)
+            for (int i = 0; i < _systems.Count; i++)
             {
+                var system = _systems[i];
                 var entities = _world.GetEntitiesWithMask(system.GetRequiredMask());
                 if (EcsDebug.Verbose && entities.Count > 0)
                     Debug.Log($"[ECS] FixedUpdate — {system.GetType().Name}: {entities.Count} entity/entities");
@@ -110,20 +111,21 @@ namespace HelloDev.Entities
 
             _commandBuffer.Flush(_world);
 
-            foreach (var bridge in _bridges) bridge.FixedPullFromEcs();
+            for (int i = 0; i < _bridges.Count; i++) _bridges[i].FixedPullFromEcs();
         }
 
         private void Update()
         {
-            foreach (var system in _systems)
+            for (int i = 0; i < _systems.Count; i++)
             {
+                var system = _systems[i];
                 var entities = _world.GetEntitiesWithMask(system.GetRequiredMask());
                 if (EcsDebug.Verbose && entities.Count > 0)
                     Debug.Log($"[ECS] Update — {system.GetType().Name}: {entities.Count} entity/entities");
                 system.Execute(_world, entities, Time.deltaTime);
             }
 
-            foreach (var bridge in _bridges) bridge.PullFromEcs();
+            for (int i = 0; i < _bridges.Count; i++) _bridges[i].PullFromEcs();
         }
 
         private void OnDestroy()

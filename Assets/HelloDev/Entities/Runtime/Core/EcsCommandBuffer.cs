@@ -61,33 +61,33 @@ namespace HelloDev.Entities
         // Called by the system runner after all systems have executed.
         public void Flush(EcsWorld world)
         {
-            foreach (var cmd in _commands)
+            try
             {
-                // Always validate — the entity might have been destroyed by
-                // an earlier command in this same flush batch.
-                if (!world.IsAlive(cmd.Entity) && cmd.Type != EcsCommandType.DestroyEntity)
-                    continue;
-
-                switch (cmd.Type)
+                foreach (var cmd in _commands)
                 {
-                    case EcsCommandType.AddComponent:
-                        // Use reflection to call the generic AddComponent<T>.
-                        // This is a rare case where reflection is justified —
-                        // it only runs during the flush, never inside a hot loop.
-                        world.AddComponentBoxed(cmd.Entity, cmd.ComponentType, cmd.ComponentData);
-                        break;
+                    if (!world.IsAlive(cmd.Entity) && cmd.Type != EcsCommandType.DestroyEntity)
+                        continue;
 
-                    case EcsCommandType.RemoveComponent:
-                        world.RemoveComponentBoxed(cmd.Entity, cmd.ComponentType);
-                        break;
+                    switch (cmd.Type)
+                    {
+                        case EcsCommandType.AddComponent:
+                            world.AddComponentBoxed(cmd.Entity, cmd.ComponentType, cmd.ComponentData);
+                            break;
 
-                    case EcsCommandType.DestroyEntity:
-                        world.DestroyEntity(cmd.Entity);
-                        break;
+                        case EcsCommandType.RemoveComponent:
+                            world.RemoveComponentBoxed(cmd.Entity, cmd.ComponentType);
+                            break;
+
+                        case EcsCommandType.DestroyEntity:
+                            world.DestroyEntity(cmd.Entity);
+                            break;
+                    }
                 }
             }
-
-            _commands.Clear();
+            finally
+            {
+                _commands.Clear();
+            }
         }
     }
 }

@@ -38,8 +38,16 @@ namespace HelloDev.Entities
             {
                 var reqAttr = (RequiresSystemAttribute)attr;
                 foreach (var type in reqAttr.SystemTypes)
+                {
+                    // Skip if system already registered — avoids wasteful Activator allocations.
+                    bool alreadyRegistered = false;
+                    foreach (var existing in runner.Systems)
+                        if (existing.GetType() == type) { alreadyRegistered = true; break; }
+                    if (alreadyRegistered) continue;
+
                     if (Activator.CreateInstance(type) is IEcsSystem system)
                         runner.AddSystem(system);
+                }
             }
         }
 

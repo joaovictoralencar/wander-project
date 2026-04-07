@@ -42,7 +42,12 @@ namespace HelloDev.Entities
             _errors.Clear();
             _warnings.Clear();
 
-            var bridges = GetComponentsInChildren<EcsComponentBridge>();
+            // Only consider bridges owned by THIS root, not nested EcsEntityRoot children.
+            var allBridges = GetComponentsInChildren<EcsComponentBridge>();
+            var bridges = new List<EcsComponentBridge>();
+            foreach (var b in allBridges)
+                if (b.GetComponentInParent<EcsEntityRoot>() == this)
+                    bridges.Add(b);
 
             // Collect all provided components from bridge [Provides] attributes.
             var coveredComponents = new HashSet<Type>();
@@ -62,10 +67,17 @@ namespace HelloDev.Entities
             // Each system's RequiredComponents must be covered by a bridge.
             foreach (var sysType in allSystemTypes)
             {
-                if (Activator.CreateInstance(sysType) is not EcsSystemBase sys) continue;
-                foreach (var type in sys.RequiredComponents)
-                    if (!coveredComponents.Contains(type))
-                        _warnings.Add($"{sysType.Name} needs {type.Name} — ensure a bridge provides it.");
+                try
+                {
+                    if (Activator.CreateInstance(sysType) is not EcsSystemBase sys) continue;
+                    foreach (var type in sys.RequiredComponents)
+                        if (!coveredComponents.Contains(type))
+                            _warnings.Add($"{sysType.Name} needs {type.Name} — ensure a bridge provides it.");
+                }
+                catch (Exception ex)
+                {
+                    _warnings.Add($"Cannot validate {sysType.Name}: {ex.Message}");
+                }
             }
         }
 #endif
@@ -81,6 +93,13 @@ namespace HelloDev.Entities
 
             World  = runner.World;
             Entity = World.CreateEntity();
+
+            if (Entity.IsNull)
+            {
+                Debug.LogError($"[EcsEntityRoot] Failed to create entity for '{gameObject.name}'. Entity limit reached.", this);
+                return;
+            }
+
             EcsDebug.Log($"'{gameObject.name}' spawned as Entity({Entity.Id})");
 
             // Orphan systems (not tied to any bridge).
@@ -88,10 +107,15 @@ namespace HelloDev.Entities
                 if (Systems[i] != null)
                     runner.AddSystem(Systems[i]);
 
-            // Discover and initialize all bridges — they add their own components and systems.
+            // Discover and initialize bridges on THIS root only — skip bridges that
+            // belong to a nested EcsEntityRoot (they'll be initialized by their own root).
             var bridges = GetComponentsInChildren<EcsComponentBridge>();
             for (var i = 0; i < bridges.Length; i++)
             {
+                // Walk up to find the closest EcsEntityRoot — if it's not us, skip this bridge.
+                var closestRoot = bridges[i].GetComponentInParent<EcsEntityRoot>();
+                if (closestRoot != this) continue;
+
                 bridges[i].Initialize(World, Entity);
                 runner.RegisterBridge(bridges[i]);
             }

@@ -15,7 +15,7 @@ namespace HelloDev.Entities
         {
             if (!_typeIndex.TryGetValue(type, out var index))
             {
-                Debug.Assert(_nextIndex < 62, $"[ECS] Component type limit reached. Max 62 types with a long bitmask.");
+                Debug.Assert(_nextIndex < 64, $"[ECS] Component type limit reached. Max 64 types with a long bitmask.");
                 index = _nextIndex++;
                 _typeIndex[type] = index;
                 _bitToType[index] = type;
@@ -49,7 +49,7 @@ namespace HelloDev.Entities
         /// </summary>
         public static IEnumerable<Type> GetTypesFromMask(long mask)
         {
-            for (int i = 0; i < 62; i++)
+            for (int i = 0; i < 64; i++)
                 if ((mask & (1L << i)) != 0 && _bitToType.TryGetValue(i, out var type))
                     yield return type;
         }
