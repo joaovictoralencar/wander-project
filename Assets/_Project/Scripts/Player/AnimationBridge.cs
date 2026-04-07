@@ -1,4 +1,3 @@
-using System;
 using HelloDev.Entities;
 using UnityEngine;
 using Wander.Character.Components;
@@ -7,14 +6,10 @@ using Wander.Character.Systems;
 namespace Wander.Player
 {
     /// <summary>
-    /// Pure pull bridge: reads <see cref="AnimationStateComponent"/> (written by
-    /// <see cref="AnimationStateSystem"/> each Update) and drives the <see cref="Animator"/>.
-    ///
-    /// Systems are not registered here. Add <see cref="AnimationStateSystem"/> to the
-    /// <see cref="EcsEntityRoot.Systems"/> list or the <see cref="EcsSystemRunner"/> inspector.
-    /// This bridge declares its dependency via <see cref="EcsComponentBridge.RequiredSystems"/>
-    /// so <see cref="EcsEntityRoot"/> will warn at startup if the system is missing.
+    /// Pure pull bridge: reads <see cref="AnimationStateComponent"/> and drives the <see cref="Animator"/>.
     /// </summary>
+    [RequiresSystem(typeof(AnimationStateSystem))]
+    [Provides(typeof(AnimationStateComponent))]
     public class AnimationBridge : EcsComponentBridge
     {
         [Header("Animator Parameter Names")]
@@ -22,14 +17,15 @@ namespace Wander.Player
         [SerializeField] private string _groundedParam = "Grounded";
         [SerializeField] private string _jumpParam     = "Jump";
         [SerializeField] private string _freeFallParam = "FreeFall";
+        [SerializeField] private string _dodgeParam    = "Dodge";
 
-        // Assign in the Inspector or leave empty to auto-find on children.
         [SerializeField] private Animator _animator;
 
         private int _speedId;
         private int _groundedId;
         private int _jumpId;
         private int _freeFallId;
+        private int _dodgeId;
 
         private void Awake()
         {
@@ -38,7 +34,7 @@ namespace Wander.Player
 
             if (_animator == null)
             {
-                Debug.LogWarning($"[AnimationBridge] No Animator found on '{gameObject.name}' or its children. Animation will be disabled.", this);
+                Debug.LogWarning($"[AnimationBridge] No Animator found on '{gameObject.name}' or its children.", this);
                 return;
             }
 
@@ -46,6 +42,7 @@ namespace Wander.Player
             _groundedId = Animator.StringToHash(_groundedParam);
             _jumpId     = Animator.StringToHash(_jumpParam);
             _freeFallId = Animator.StringToHash(_freeFallParam);
+            _dodgeId    = Animator.StringToHash(_dodgeParam);
 
 #if UNITY_EDITOR
             ValidateAnimatorParams();
@@ -61,29 +58,19 @@ namespace Wander.Player
             foreach (var p in _animator.parameters)
                 paramNames.Add(p.name);
 
-            foreach (var name in new[] { _speedParam, _groundedParam, _jumpParam, _freeFallParam })
+            foreach (var name in new[] { _speedParam, _groundedParam, _jumpParam, _freeFallParam, _dodgeParam })
                 if (!paramNames.Contains(name))
-                    Debug.LogWarning($"[AnimationBridge] Animator on '{gameObject.name}' has no parameter '{name}'. Check the parameter name or the Animator Controller.", this);
+                    Debug.LogWarning($"[AnimationBridge] Animator on '{gameObject.name}' has no parameter '{name}'.", this);
         }
 #endif
 
-        public override Type[] RequiredSystems => new[] { typeof(AnimationStateSystem) };
+        protected override void OnInitialize() => Add(new AnimationStateComponent { IsGrounded = true });
 
-        public override Type[] ProvidedComponents => new[] { typeof(AnimationStateComponent) };
-
-        protected override void OnInitialize()
-        {
-            if (!World.HasComponent<AnimationStateComponent>(Entity))
-                World.AddComponent(Entity, new AnimationStateComponent { IsGrounded = true });
-        }
-
-        // Called by EcsSystemRunner each Update, after AnimationStateSystem.Execute has written
-        // the latest AnimationStateComponent values.
         protected override void OnPullFromEcs()
         {
             if (_animator == null) return;
 
-            var anim = World.GetComponent<AnimationStateComponent>(Entity);
+            var anim = Get<AnimationStateComponent>();
 
             _animator.SetFloat(_speedId,   anim.SpeedBlend);
             _animator.SetBool(_groundedId, anim.IsGrounded);
@@ -91,6 +78,9 @@ namespace Wander.Player
 
             if (anim.TriggerJump)
                 _animator.SetTrigger(_jumpId);
+
+            if (anim.TriggerDodge)
+                _animator.SetTrigger(_dodgeId);
         }
     }
 }

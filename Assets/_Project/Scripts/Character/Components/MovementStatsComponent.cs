@@ -1,5 +1,4 @@
 using System;
-using HelloDev.Entities;
 
 namespace Wander.Character.Components
 {
@@ -11,18 +10,5 @@ namespace Wander.Character.Components
         public float JumpForce;
         public float Gravity;
         public float RotationSpeed;
-    }
-
-    [Serializable]
-    public sealed class MovementStatsInitializer : ComponentInit<MovementStatsComponent>
-    {
-        public MovementStatsInitializer() => Component = new MovementStatsComponent
-        {
-            WalkSpeed     = 4f,
-            RunSpeed      = 8f,
-            JumpForce     = 7f,
-            Gravity       = 18f,
-            RotationSpeed = 12f,
-        };
     }
 }

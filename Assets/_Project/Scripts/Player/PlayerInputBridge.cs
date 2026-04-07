@@ -1,4 +1,3 @@
-using System;
 using HelloDev.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -8,26 +7,20 @@ using Wander.Character.Components;
 namespace Wander.Player
 {
     /// <summary>
-    /// Receives Unity Input System events wired in the Inspector (PlayerInput → Behavior:
-    /// "Invoke Unity Events") and writes <see cref="MoveInputComponent"/> into ECS each FixedUpdate.
-    /// This bridge is purely a push bridge — it never reads from ECS.
-    /// Movement physics, gravity, and animation are handled by separate bridges.
-    ///
-    /// Requires an <see cref="EcsEntityRoot"/> on this or a parent GameObject to provide
-    /// the entity and world context. For manual spawning, call
-    /// <see cref="EcsComponentBridge.Initialize(EcsWorld, Entity)"/> instead.
+    /// Receives Unity Input System events and writes <see cref="MoveInputComponent"/> into ECS each FixedUpdate.
+    /// Pure push bridge — never reads from ECS.
     /// </summary>
+    [Provides(typeof(MoveInputComponent))]
     [RequireComponent(typeof(PlayerInput))]
     public class PlayerInputBridge : EcsComponentBridge
     {
         [SerializeField] private Transform _cameraTransform;
 
-        // Cached input state — updated by Unity Events, consumed in OnPushToEcs.
         private Vector2 _moveInput;
         private bool _sprint;
         private bool _jumpPressed;
-
-        public override Type[] ProvidedComponents => new[] { typeof(MoveInputComponent) };
+        private bool _attackPressed;
+        private bool _dodgePressed;
 
         private void Awake()
         {
@@ -35,14 +28,8 @@ namespace Wander.Player
                 _cameraTransform = Camera.main.transform;
         }
 
-        protected override void OnInitialize()
-        {
-            if (!World.HasComponent<MoveInputComponent>(Entity))
-                World.AddComponent(Entity, new MoveInputComponent());
-        }
+        protected override void OnInitialize() => Add(new MoveInputComponent());
 
-        // Called before systems run each FixedUpdate.
-        // Converts cached raw input into a camera-relative direction and writes MoveInputComponent.
         protected override void OnPushToEcs()
         {
             float3 direction = float3.zero;
@@ -53,27 +40,37 @@ namespace Wander.Player
                 float3 worldDir;
                 if (_cameraTransform != null)
                 {
-                    Vector3 fwd   = _cameraTransform.forward; fwd.y = 0f; fwd.Normalize();
-                    Vector3 right = _cameraTransform.right;  right.y = 0f; right.Normalize();
+                    Vector3 fwd = _cameraTransform.forward;
+                    fwd.y = 0f;
+                    fwd.Normalize();
+                    Vector3 right = _cameraTransform.right;
+                    right.y = 0f;
+                    right.Normalize();
                     worldDir = math.normalize((float3)(fwd * _moveInput.y + right * _moveInput.x));
                 }
                 else
                 {
                     worldDir = math.normalize(new float3(_moveInput.x, 0f, _moveInput.y));
                 }
+
                 direction = worldDir * inputMagnitude;
             }
 
-            World.SetComponent(Entity, new MoveInputComponent
+            Set(new MoveInputComponent
             {
                 Direction = direction,
-                Sprint    = _sprint,
-                Jump      = _jumpPressed,
+                Sprint = _sprint,
+                Jump = _jumpPressed,
+                Attack = _attackPressed,
+                Dodge = _dodgePressed
             });
-            _jumpPressed = false; // consumed — cleared so subsequent fixed steps don't re-jump
+
+            _jumpPressed = false;
+            _attackPressed = false;
+            _dodgePressed = false;
         }
 
-        // ── Unity Event receivers (wire these in the PlayerInput Inspector) ───────
+        // ── Unity Event receivers ───────
 
         public void OnMove(InputAction.CallbackContext context)
         {
@@ -89,6 +86,18 @@ namespace Wander.Player
         {
             if (context.performed)
                 _jumpPressed = true;
+        }
+
+        public void OnAttack(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                _attackPressed = true;
+        }
+
+        public void OnDodge(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                _dodgePressed = true;
         }
     }
 }

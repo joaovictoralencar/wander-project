@@ -16,8 +16,15 @@ namespace HelloDev.Entities
         /// </summary>
         public virtual Type[] RequiredComponents => Array.Empty<Type>();
 
+        /// <summary>
+        /// Execution priority. Lower values run first. Default is 0.
+        /// Use negative values for systems that must run early (e.g. physics),
+        /// positive for systems that read results (e.g. animation).
+        /// </summary>
+        public virtual int Order => 0;
+
         // Sealed — the mask is an implementation detail. Override RequiredComponents instead.
-        public int GetRequiredMask() => ComponentRegistry.BuildMask(RequiredComponents);
+        public long GetRequiredMask() => ComponentRegistry.BuildMask(RequiredComponents);
 
         public abstract void Initialize(EcsWorld world);
 

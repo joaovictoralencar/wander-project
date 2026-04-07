@@ -30,25 +30,6 @@ namespace HelloDev.Entities
             return entity;
         }
 
-        public Entity CreateEntity(IBridge bridge)
-        {
-            var id = _freeIds.Count > 0 ? _freeIds.Dequeue() : _nextEntityId++;
-            if (EcsSystemRunner.Instance == null)
-            {
-                Debug.LogWarning($"Creating entity {id} with a bridge before EcsSystemRunner is initialized. This entity will not be registered with the bridge and may not behave as expected.");
-            }
-            else
-            {
-                if (bridge is not MonoBehaviour monoBehaviour) return new Entity(id, _generations[id]);
-                foreach (var b in monoBehaviour.GetComponentsInChildren<IBridge>())
-                    EcsSystemRunner.Instance.RegisterBridge(b);
-            }
-
-            var entity = new Entity(id, _generations[id]);
-            EcsDebug.Log($"Entity({entity.Id}, gen={entity.Generation}) created (with bridge)");
-            return entity;
-        }
-
         public void DestroyEntity(Entity entity)
         {
             if (!IsAlive(entity))
@@ -88,11 +69,11 @@ namespace HelloDev.Entities
         #region Component Registry
 
         // The current component signature for each entity slot.
-        private readonly int[] _signatures = new int[EcsRuntime.MaxEntities];
-        private readonly Dictionary<int, List<int>> _filterCache = new();
+        private readonly long[] _signatures = new long[EcsRuntime.MaxEntities];
+        private readonly Dictionary<long, List<int>> _filterCache = new();
 
         // Systems call this to get their pre-filtered entity list.
-        public List<int> GetEntitiesWithMask(int requiredMask)
+        public List<int> GetEntitiesWithMask(long requiredMask)
         {
             if (!_filterCache.TryGetValue(requiredMask, out var list))
             {
@@ -124,7 +105,7 @@ namespace HelloDev.Entities
         {
             GetOrCreateComponentStorage<T>().Set(entity.Id, component);
             int bit = ComponentRegistry.GetOrRegister(typeof(T));
-            _signatures[entity.Id] |= (1 << bit);
+            _signatures[entity.Id] |= (1L << bit);
             InvalidateCacheFor(entity.Id);
             EcsDebug.Log($"Entity({entity.Id}) ← {typeof(T).Name}");
         }
@@ -133,7 +114,7 @@ namespace HelloDev.Entities
         {
             GetOrCreateComponentStorage<T>().RemoveComponent(entity.Id);
             int bit = ComponentRegistry.GetOrRegister(typeof(T));
-            _signatures[entity.Id] &= ~(1 << bit);
+            _signatures[entity.Id] &= ~(1L << bit);
             InvalidateCacheFor(entity.Id);
             EcsDebug.Log($"Entity({entity.Id}) ✕ {typeof(T).Name}");
         }
@@ -175,11 +156,68 @@ namespace HelloDev.Entities
         // Reconstructs a valid Entity handle from a raw ID returned by GetEntitiesWithMask.
         public Entity GetEntity(int id) => new Entity(id, _generations[id]);
 
+        /// <summary>
+        /// Fills <paramref name="results"/> with all living entities that have component <typeparamref name="T"/>.
+        /// Useful for relationship queries (e.g. "find all entities targeting X").
+        /// </summary>
+        public void GetEntitiesWithComponent<T>(List<Entity> results) where T : unmanaged
+        {
+            long mask = 1L << ComponentRegistry.GetOrRegister(typeof(T));
+            for (int i = 0; i < _nextEntityId; i++)
+                if ((_signatures[i] & mask) == mask)
+                    results.Add(new Entity(i, _generations[i]));
+        }
+
+        /// <summary>
+        /// Returns the first living entity that has component <typeparamref name="T"/>
+        /// matching the <paramref name="predicate"/>, or <see cref="Entity.Null"/> if none found.
+        /// Useful for singleton-style lookups or reverse-reference queries.
+        /// </summary>
+        public Entity FindEntity<T>(Func<T, bool> predicate) where T : unmanaged
+        {
+            var storage = GetOrCreateComponentStorage<T>();
+            long mask = 1L << ComponentRegistry.GetOrRegister(typeof(T));
+            for (int i = 0; i < _nextEntityId; i++)
+            {
+                if ((_signatures[i] & mask) != mask) continue;
+                if (predicate(storage.Get(i)))
+                    return new Entity(i, _generations[i]);
+            }
+            return Entity.Null;
+        }
+
         // Exposes raw component data for job scheduling.
         // The NativeArray is indexed by entity ID — jobs must use [NativeDisableParallelForRestriction]
         // when writing, since they index by entity ID rather than job index.
         public NativeArray<T> GetComponentDataArray<T>() where T : unmanaged
             => GetOrCreateComponentStorage<T>().Data;
+
+        #endregion
+
+        #region Event Queues
+
+        private readonly Dictionary<Type, IEcsEventQueue> _eventQueues = new();
+
+        public EcsEventQueue<T> GetEventQueue<T>()
+        {
+            var type = typeof(T);
+            if (!_eventQueues.TryGetValue(type, out var queue))
+                _eventQueues[type] = queue = new EcsEventQueue<T>();
+            return (EcsEventQueue<T>)queue;
+        }
+
+        /// <summary>Enqueues an event. Readable by any system or bridge until the next FixedUpdate.</summary>
+        public void EnqueueEvent<T>(T e) => GetEventQueue<T>().Enqueue(e);
+
+        /// <summary>Returns all events of type <typeparamref name="T"/> queued this frame.</summary>
+        public IReadOnlyList<T> ReadEvents<T>() => GetEventQueue<T>().Read();
+
+        /// <summary>Called by <see cref="EcsSystemRunner"/> at the start of each FixedUpdate.</summary>
+        public void ClearAllEvents()
+        {
+            foreach (var queue in _eventQueues.Values)
+                queue.Clear();
+        }
 
         #endregion
 

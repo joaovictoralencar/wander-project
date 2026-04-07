@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HelloDev.Entities;
 using Unity.Mathematics;
 using Wander.Character.Components;
+using Wander.Character.Events;
 
 namespace Wander.Character.Systems
 {
@@ -15,6 +16,8 @@ namespace Wander.Character.Systems
     [Serializable]
     public class CharacterPhysicsSystem : EcsSystemBase
     {
+        public override int Order => -10;
+
         public override Type[] RequiredComponents => new[]
         {
             typeof(MoveInputComponent),
@@ -33,23 +36,40 @@ namespace Wander.Character.Systems
                 var stats  = world.GetComponent<MovementStatsComponent>(entity);
                 var state  = world.GetComponent<MovementStateComponent>(entity);
 
-                // Horizontal
-                float targetSpeed   = input.Sprint ? stats.RunSpeed : stats.WalkSpeed;
-                float inputStrength = math.saturate(math.length(input.Direction));
-                float3 horizontal   = math.normalizesafe(input.Direction) * targetSpeed * inputStrength;
+                // Horizontal — suppressed when CanMove is false (e.g. during a dodge).
+                float3 horizontal = float3.zero;
+                float  speed      = 0f;
+                if (state.CanMove)
+                {
+                    float targetSpeed   = input.Sprint ? stats.RunSpeed : stats.WalkSpeed;
+                    float inputStrength = math.saturate(math.length(input.Direction));
+                    horizontal = math.normalizesafe(input.Direction) * targetSpeed * inputStrength;
+                    speed      = math.length(horizontal);
+                }
 
                 // Vertical
                 float verticalVelocity = state.Velocity.y;
                 if (state.IsGrounded)
-                    verticalVelocity = input.Jump ? stats.JumpForce : -2f;
+                {
+                    if (input.Jump)
+                    {
+                        verticalVelocity = stats.JumpForce;
+                        world.EnqueueEvent(new JumpStartedEvent { Entity = entity });
+                    }
+                    else
+                    {
+                        verticalVelocity = -2f;
+                    }
+                }
                 else
                     verticalVelocity -= stats.Gravity * fixedDeltaTime;
 
                 world.SetOrAddComponent(entity, new MovementStateComponent
                 {
                     Velocity   = new float3(horizontal.x, verticalVelocity, horizontal.z),
-                    Speed      = math.length(horizontal),
+                    Speed      = speed,
                     IsGrounded = state.IsGrounded,
+                    CanMove    = state.CanMove,
                 });
             }
         }

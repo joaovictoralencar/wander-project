@@ -14,12 +14,12 @@ namespace HelloDev.Entities
         /// <summary>Extra per-frame logs (system entity counts). Separate toggle to avoid console spam.</summary>
         public static bool Verbose { get; internal set; }
 
-        internal static void Log(string message)
+        public static void Log(string message)
         {
             if (Enabled) Debug.Log($"[ECS] {message}");
         }
 
-        internal static void Warn(string message)
+        public static void Warn(string message)
         {
             if (Enabled) Debug.LogWarning($"[ECS] {message}");
         }

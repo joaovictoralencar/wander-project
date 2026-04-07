@@ -12,6 +12,6 @@ namespace HelloDev.Entities
         void Execute(EcsWorld world, List<int> entities, float deltaTime);
         void Dispose();
         // Used by the runner to filter entities. Implement via EcsSystemBase.RequiredComponents.
-        int GetRequiredMask();
+        long GetRequiredMask();
     }
 }

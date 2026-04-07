@@ -3,18 +3,18 @@ using UnityEngine;
 
 namespace HelloDev.Entities
 {
-    // Runs at -50 so any bridge that needs to apply results (e.g. CharacterController.Move)
-    // can safely do so in its own FixedUpdate at default order 0.
     [DefaultExecutionOrder(-50)]
     public class EcsSystemRunner : MonoBehaviour
     {
         public static EcsSystemRunner Instance { get; private set; }
 
-        [SerializeField] private EcsConfigAsset _config;
-        
+        [Header("Config")]
+        [Tooltip("Maximum number of entities the ECS world can hold. Set before play.")]
+        [SerializeField] private int _maxEntities = 128;
+
         private EcsWorld _world;
         private readonly List<IEcsSystem> _systems = new();
-        private readonly List<IBridge> _bridges = new();
+        private readonly List<EcsComponentBridge> _bridges = new();
         private readonly EcsCommandBuffer _commandBuffer = new();
 
         public EcsWorld World => _world;
@@ -41,10 +41,8 @@ namespace HelloDev.Entities
             EcsDebug.Enabled = _debugLogs;
             EcsDebug.Verbose = _verboseLogs;
 
-            if (_config != null)
-                EcsRuntime.Initialize(_config);
-            else
-                Debug.LogWarning("[ECS] No EcsConfigAsset assigned to EcsSystemRunner. Using default MaxEntities (128).");
+            Debug.Assert(_maxEntities is > 0 and <= 1024, "MaxEntities must be between 1 and 1024.");
+            EcsRuntime.MaxEntities = _maxEntities;
 
             ComponentRegistry.Reset();
             _world = new EcsWorld();
@@ -58,13 +56,12 @@ namespace HelloDev.Entities
             var sb = new System.Text.StringBuilder();
             sb.AppendLine($"[ECS] Runner ready — {_systems.Count} system(s), {_bridges.Count} bridge(s)");
             foreach (var s in _systems) sb.AppendLine($"  + {s.GetType().Name}");
-            foreach (var b in _bridges) sb.AppendLine($"  ~ {(b as UnityEngine.Object)?.name ?? b.GetType().Name}");
+            foreach (var b in _bridges) sb.AppendLine($"  ~ {b.name} ({b.GetType().Name})");
             Debug.Log(sb.ToString().TrimEnd());
         }
 
         /// <summary>
         /// Registers a system and calls its <see cref="IEcsSystem.Initialize"/>.
-        /// Safe to call from any MonoBehaviour Start() — the world is guaranteed ready by then.
         /// Duplicate system types are silently ignored.
         /// </summary>
         public void AddSystem(IEcsSystem system)
@@ -74,23 +71,33 @@ namespace HelloDev.Entities
 
             _systems.Add(system);
             system.Initialize(_world);
-            EcsDebug.Log($"System registered: {system.GetType().Name}");
+
+            _systems.Sort((a, b) =>
+            {
+                int oa = a is EcsSystemBase sa ? sa.Order : 0;
+                int ob = b is EcsSystemBase sb ? sb.Order : 0;
+                return oa.CompareTo(ob);
+            });
+
+            EcsDebug.Log($"System registered: {system.GetType().Name} (order={((system is EcsSystemBase s) ? s.Order : 0)})");
         }
 
-        public void RegisterBridge(IBridge bridge)
+        internal void RegisterBridge(EcsComponentBridge bridge)
         {
             if (_bridges.Contains(bridge)) return;
             _bridges.Add(bridge);
-            EcsDebug.Log($"Bridge registered: {(bridge as UnityEngine.Object)?.name ?? bridge.GetType().Name} ({bridge.GetType().Name})");
+            EcsDebug.Log($"Bridge registered: {bridge.name} ({bridge.GetType().Name})");
         }
 
-        public void UnregisterBridge(IBridge bridge)
+        internal void UnregisterBridge(EcsComponentBridge bridge)
         {
-            if (_bridges.Contains(bridge)) _bridges.Remove(bridge);
+            _bridges.Remove(bridge);
         }
 
         private void FixedUpdate()
         {
+            _world.ClearAllEvents();
+
             foreach (var bridge in _bridges) bridge.PushToEcs();
 
             foreach (var system in _systems)
@@ -121,8 +128,6 @@ namespace HelloDev.Entities
 
         private void OnDestroy()
         {
-            // Null the instance first — bridges check this in their own OnDestroy to detect
-            // world teardown and avoid accessing disposed NativeCollections.
             Instance = null;
 
             foreach (var system in _systems) system.Dispose();

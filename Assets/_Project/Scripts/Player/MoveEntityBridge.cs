@@ -1,4 +1,3 @@
-using System;
 using HelloDev.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -10,44 +9,52 @@ namespace Wander.Player
 {
     /// <summary>
     /// Translates between Unity's CharacterController and ECS movement state.
+    /// Owns PositionComponent, MovementStateComponent, and MovementStatsComponent.
     /// </summary>
+    [RequiresSystem(typeof(CharacterPhysicsSystem))]
+    [Provides(typeof(PositionComponent), typeof(MovementStateComponent), typeof(MovementStatsComponent))]
     [RequireComponent(typeof(CharacterController))]
     public class MoveEntityBridge : EcsComponentBridge
     {
+        [Header("Movement Stats")]
+        [SerializeField] private MovementStatsComponent _stats = new()
+        {
+            WalkSpeed     = 4f,
+            RunSpeed      = 8f,
+            JumpForce     = 7f,
+            Gravity       = 18f,
+            RotationSpeed = 12f,
+        };
+
         private CharacterController _characterController;
 
         private void Awake() => _characterController = GetComponent<CharacterController>();
 
-        public override Type[] RequiredSystems => new[] { typeof(CharacterPhysicsSystem) };
-
-        public override Type[] ProvidedComponents => new[]
-        {
-            typeof(PositionComponent),
-            typeof(MovementStateComponent),
-        };
-
         protected override void OnInitialize()
         {
-            if (!World.HasComponent<PositionComponent>(Entity))
-                World.AddComponent(Entity, new PositionComponent { Value = (float3)transform.position });
-
-            if (!World.HasComponent<MovementStateComponent>(Entity))
-                World.AddComponent(Entity, new MovementStateComponent { IsGrounded = true });
+            Add(new PositionComponent());
+            Add(new MovementStateComponent { IsGrounded = true, CanMove = true });
+            Add(_stats);
         }
 
-        // Seed IsGrounded from CharacterController before systems run.
         protected override void OnPushToEcs()
         {
-            var state = World.GetComponent<MovementStateComponent>(Entity);
+            var state = Get<MovementStateComponent>();
             state.IsGrounded = _characterController.isGrounded;
-            World.SetOrAddComponent(Entity, state);
+            Set(state);
         }
 
-        // After CharacterPhysicsSystem has written the full velocity, apply it and sync position.
         protected override void OnFixedPullFromEcs()
         {
-            var state = World.GetComponent<MovementStateComponent>(Entity);
-            var stats = World.GetComponent<MovementStatsComponent>(Entity);
+            var state = Get<MovementStateComponent>();
+
+            if (!state.CanMove)
+            {
+                Add(new PositionComponent { Value = (float3)transform.position });
+                return;
+            }
+
+            var stats = Get<MovementStatsComponent>();
 
             _characterController.Move((Vector3)state.Velocity * Time.fixedDeltaTime);
 
@@ -58,8 +65,7 @@ namespace Wander.Player
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, stats.RotationSpeed * Time.fixedDeltaTime);
             }
 
-            World.SetOrAddComponent(Entity, new PositionComponent { Value = (float3)transform.position });
+            Add(new PositionComponent { Value = (float3)transform.position });
         }
     }
 }
-

@@ -15,7 +15,7 @@ namespace HelloDev.Entities
         {
             if (!_typeIndex.TryGetValue(type, out var index))
             {
-                Debug.Assert(_nextIndex < 30, $"[ECS] Component type limit reached. Max 30 types with an int bitmask. Consider migrating to long.");
+                Debug.Assert(_nextIndex < 62, $"[ECS] Component type limit reached. Max 62 types with a long bitmask.");
                 index = _nextIndex++;
                 _typeIndex[type] = index;
                 _bitToType[index] = type;
@@ -34,11 +34,11 @@ namespace HelloDev.Entities
         }
 
         // Builds a bitmask with a 1 in the position for each provided type.
-        public static int BuildMask(params Type[] types)
+        public static long BuildMask(params Type[] types)
         {
-            int mask = 0;
+            long mask = 0;
             foreach (var type in types)
-                mask |= 1 << GetOrRegister(type);
+                mask |= 1L << GetOrRegister(type);
             return mask;
         }
 
@@ -47,10 +47,10 @@ namespace HelloDev.Entities
         /// Only types that have been registered via <see cref="GetOrRegister"/> or
         /// <see cref="BuildMask"/> are returned — unknown bits are silently skipped.
         /// </summary>
-        public static IEnumerable<Type> GetTypesFromMask(int mask)
+        public static IEnumerable<Type> GetTypesFromMask(long mask)
         {
-            for (int i = 0; i < 30; i++)
-                if ((mask & (1 << i)) != 0 && _bitToType.TryGetValue(i, out var type))
+            for (int i = 0; i < 62; i++)
+                if ((mask & (1L << i)) != 0 && _bitToType.TryGetValue(i, out var type))
                     yield return type;
         }
     }

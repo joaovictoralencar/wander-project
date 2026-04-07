@@ -831,6 +831,7 @@ GameObject:
   - component: {fileID: 1841136241}
   - component: {fileID: 1841136243}
   - component: {fileID: 1841136244}
+  - component: {fileID: 1841136245}
   m_Layer: 0
   m_Name: pfb_Player
   m_TagString: Untagged
@@ -925,7 +926,19 @@ MonoBehaviour:
     m_ActionId: 6b444451-8a00-4d00-a97e-f47457f736a8
     m_ActionName: 'Player/Look[/Mouse/delta]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1841136241}
+        m_TargetAssemblyTypeName: Wander.Player.PlayerInputBridge, WanderProject
+        m_MethodName: OnAttack
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 6c2ab1b8-8984-453a-af3d-a3c78ae1679a
     m_ActionName: 'Player/Attack[/Mouse/leftButton,/Keyboard/enter]'
   - m_PersistentCalls:
@@ -1004,6 +1017,22 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 9caa3d8a-6b2f-4e8e-8bad-6ede561bd9be
     m_ActionName: UI/TrackedDeviceOrientation
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1841136241}
+        m_TargetAssemblyTypeName: Wander.Player.PlayerInputBridge, WanderProject
+        m_MethodName: OnDodge
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 036ce3ce-ac2e-426c-818f-b85d44e01594
+    m_ActionName: 'Player/Dodge[/Keyboard/leftAlt]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -1039,9 +1068,11 @@ MonoBehaviour:
   - rid: 2979206050602025089
   - rid: 2979206050602025093
   - rid: 2979206050602025098
+  - rid: 2979206072436523127
   Systems:
   - rid: 2979206050602025091
   - rid: 2979206050602025097
+  - rid: 2979206072436523128
   references:
     version: 2
     RefIds:
@@ -1055,6 +1086,8 @@ MonoBehaviour:
             z: 0
           Sprint: 0
           Jump: 0
+          Attack: 0
+          Dodge: 0
     - rid: 2979206050602025089
       type: {class: MovementStatsInitializer, ns: Wander.Character.Components, asm: WanderProject}
       data:
@@ -1077,6 +1110,7 @@ MonoBehaviour:
             z: 0
           Speed: 0
           IsGrounded: 1
+          CanMove: 1
     - rid: 2979206050602025097
       type: {class: AnimationStateSystem, ns: Wander.Character.Systems, asm: WanderProject}
       data: 
@@ -1087,6 +1121,14 @@ MonoBehaviour:
           SpeedBlend: 0
           IsGrounded: 0
           TriggerJump: 0
+          TriggerDodge: 0
+          IsDodging: 0
+    - rid: 2979206072436523127
+      type: {class: DodgeInitializer, ns: Wander, asm: WanderProject}
+      data: 
+    - rid: 2979206072436523128
+      type: {class: DodgeSystem, ns: Wander.Character.Systems, asm: WanderProject}
+      data: 
 --- !u!114 &1841136243
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1115,7 +1157,45 @@ MonoBehaviour:
   _groundedParam: Grounded
   _jumpParam: Jump
   _freeFallParam: FreeFall
+  _dodgeParam: Dodge
   _animator: {fileID: 1719360119}
+--- !u!114 &1841136245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1841136236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2c4b165438fc7c4e8856b803f7d7cb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WanderProject::Wander.DodgeBridge
+  _dodgeAccelCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _characterController: {fileID: 1841136238}
 --- !u!1001 &5598815333801541452
 PrefabInstance:
   m_ObjectHideFlags: 0

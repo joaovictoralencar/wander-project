@@ -1,20 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Sirenix.Utilities.Editor;
 using UnityEngine;
 #if UNITY_EDITOR && ODIN_INSPECTOR
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
+using Sirenix.Utilities.Editor;
 #endif
 
 namespace HelloDev.Entities
 {
     /// <summary>
-    /// Root MonoBehaviour for ECS-driven GameObjects. Creates the entity, applies components
-    /// and systems from the inspector lists, and auto-discovers child bridges.
+    /// Root MonoBehaviour for ECS-driven GameObjects. Creates the entity,
+    /// auto-discovers and initializes child bridges, and registers orphan systems.
     /// </summary>
-    public class EcsEntityRoot : MonoBehaviour, IEntityContext
+    public class EcsEntityRoot : MonoBehaviour
     {
 #if UNITY_EDITOR && ODIN_INSPECTOR
         [OnInspectorGUI, PropertyOrder(-1)]
@@ -26,10 +25,6 @@ namespace HelloDev.Entities
                 SirenixEditorGUI.WarningMessageBox(msg);
         }
 #endif
-
-        [Tooltip("ECS components added to this entity at spawn. Only components with configurable initial values belong here — bridges declare what they provide via ProvidedComponents.")]
-        [SerializeReference]
-        public List<IComponentInitializer> Components = new();
 
         [Tooltip("Optional. Bridges auto-register their own required systems. Add systems here only when they are not tied to any bridge on this entity (e.g. global AI or utility systems).")]
         [SerializeReference]
@@ -47,34 +42,30 @@ namespace HelloDev.Entities
             _errors.Clear();
             _warnings.Clear();
 
-            // Duplicate component initializers.
-            var seenComponents = new HashSet<Type>();
-            foreach (var init in Components)
+            var bridges = GetComponentsInChildren<EcsComponentBridge>();
+
+            // Collect all provided components from bridge [Provides] attributes.
+            var coveredComponents = new HashSet<Type>();
+            foreach (var bridge in bridges)
             {
-                if (init == null) continue;
-                if (!seenComponents.Add(init.ComponentType))
-                    _errors.Add($"Duplicate initializer: {init.ComponentType.Name} appears more than once.");
+                foreach (var t in EcsComponentBridge.GetProvidedComponentTypes(bridge.GetType()))
+                    if (!coveredComponents.Add(t))
+                        _errors.Add($"Duplicate component: {t.Name} is provided by multiple bridges.");
             }
 
-            // Full component coverage: initializers + what bridges declare they provide.
-            var coveredComponents = new HashSet<Type>(seenComponents);
-            foreach (var bridge in GetComponentsInChildren<EcsComponentBridge>())
-                foreach (var t in bridge.ProvidedComponents)
-                    coveredComponents.Add(t);
-
-            // All systems that will be active: explicitly listed + auto-registered by bridges.
+            // Collect all systems: explicitly listed + auto-registered by bridge [RequiresSystem] attributes.
             var allSystemTypes = new HashSet<Type>(Systems.Where(s => s != null).Select(s => s.GetType()));
-            foreach (var bridge in GetComponentsInChildren<EcsComponentBridge>())
-                foreach (var sysType in bridge.RequiredSystems)
+            foreach (var bridge in bridges)
+                foreach (var sysType in EcsComponentBridge.GetRequiredSystemTypes(bridge.GetType()))
                     allSystemTypes.Add(sysType);
 
-            // Each active system's RequiredComponents must be covered.
+            // Each system's RequiredComponents must be covered by a bridge.
             foreach (var sysType in allSystemTypes)
             {
                 if (Activator.CreateInstance(sysType) is not EcsSystemBase sys) continue;
                 foreach (var type in sys.RequiredComponents)
                     if (!coveredComponents.Contains(type))
-                        _warnings.Add($"{sysType.Name} needs {type.Name} — add an initializer or ensure a bridge provides it.");
+                        _warnings.Add($"{sysType.Name} needs {type.Name} — ensure a bridge provides it.");
             }
         }
 #endif
@@ -92,17 +83,16 @@ namespace HelloDev.Entities
             Entity = World.CreateEntity();
             EcsDebug.Log($"'{gameObject.name}' spawned as Entity({Entity.Id})");
 
-            for (var i = 0; i < Components.Count; i++)
-                Components[i]?.Apply(World, Entity);
-
+            // Orphan systems (not tied to any bridge).
             for (var i = 0; i < Systems.Count; i++)
                 if (Systems[i] != null)
                     runner.AddSystem(Systems[i]);
 
+            // Discover and initialize all bridges — they add their own components and systems.
             var bridges = GetComponentsInChildren<EcsComponentBridge>();
             for (var i = 0; i < bridges.Length; i++)
             {
-                bridges[i].Initialize(this);
+                bridges[i].Initialize(World, Entity);
                 runner.RegisterBridge(bridges[i]);
             }
         }
