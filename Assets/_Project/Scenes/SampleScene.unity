@@ -1063,12 +1063,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18e549bdb9ef08f4e8a8e02ad6673ba9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HelloDev.Entities::HelloDev.Entities.EcsEntityRoot
-  Components:
-  - rid: 2979206050602025087
-  - rid: 2979206050602025089
-  - rid: 2979206050602025093
-  - rid: 2979206050602025098
-  - rid: 2979206072436523127
   Systems:
   - rid: 2979206050602025091
   - rid: 2979206050602025097
@@ -1076,55 +1070,11 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 2979206050602025087
-      type: {class: MoveInputInitializer, ns: Wander.Character.Components, asm: WanderProject}
-      data:
-        Component:
-          Direction:
-            x: 0
-            y: 0
-            z: 0
-          Sprint: 0
-          Jump: 0
-          Attack: 0
-          Dodge: 0
-    - rid: 2979206050602025089
-      type: {class: MovementStatsInitializer, ns: Wander.Character.Components, asm: WanderProject}
-      data:
-        Component:
-          WalkSpeed: 4
-          RunSpeed: 8
-          JumpForce: 7
-          Gravity: 18
-          RotationSpeed: 12
     - rid: 2979206050602025091
       type: {class: CharacterPhysicsSystem, ns: Wander.Character.Systems, asm: WanderProject}
       data: 
-    - rid: 2979206050602025093
-      type: {class: MovementStateInitializer, ns: Wander.Character.Components, asm: WanderProject}
-      data:
-        Component:
-          Velocity:
-            x: 0
-            y: 0
-            z: 0
-          Speed: 0
-          IsGrounded: 1
-          CanMove: 1
     - rid: 2979206050602025097
       type: {class: AnimationStateSystem, ns: Wander.Character.Systems, asm: WanderProject}
-      data: 
-    - rid: 2979206050602025098
-      type: {class: AnimationStateInitializer, ns: Wander.Character.Components, asm: WanderProject}
-      data:
-        Component:
-          SpeedBlend: 0
-          IsGrounded: 0
-          TriggerJump: 0
-          TriggerDodge: 0
-          IsDodging: 0
-    - rid: 2979206072436523127
-      type: {class: DodgeInitializer, ns: Wander, asm: WanderProject}
       data: 
     - rid: 2979206072436523128
       type: {class: DodgeSystem, ns: Wander.Character.Systems, asm: WanderProject}
@@ -1141,6 +1091,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3073897e4462b3948b95368d0d0cafa2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WanderProject::Wander.Player.MoveEntityBridge
+  _stats:
+    WalkSpeed: 4
+    RunSpeed: 8
+    JumpForce: 7
+    Gravity: 18
+    RotationSpeed: 12
 --- !u!114 &1841136244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1171,6 +1127,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2c4b165438fc7c4e8856b803f7d7cb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WanderProject::Wander.DodgeBridge
+  _dodge:
+    DodgeDuration: 0.4
+    DodgeSpeed: 8
   _dodgeAccelCurve:
     serializedVersion: 2
     m_Curve:

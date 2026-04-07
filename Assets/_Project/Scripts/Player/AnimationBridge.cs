@@ -27,6 +27,11 @@ namespace Wander.Player
         private int _freeFallId;
         private int _dodgeId;
 
+        // Rising-edge detection — ensures SetTrigger fires exactly once per event,
+        // not every Update frame while the event flag stays true.
+        private bool _jumpTriggered;
+        private bool _dodgeTriggered;
+
         private void Awake()
         {
             if (_animator == null)
@@ -76,11 +81,26 @@ namespace Wander.Player
             _animator.SetBool(_groundedId, anim.IsGrounded);
             _animator.SetBool(_freeFallId, !anim.IsGrounded && !anim.TriggerJump);
 
-            if (anim.TriggerJump)
+            // One-shot triggers: fire once per rising edge, then wait for flag to clear.
+            if (anim.TriggerJump && !_jumpTriggered)
+            {
                 _animator.SetTrigger(_jumpId);
+                _jumpTriggered = true;
+            }
+            else if (!anim.TriggerJump)
+            {
+                _jumpTriggered = false;
+            }
 
-            if (anim.TriggerDodge)
+            if (anim.TriggerDodge && !_dodgeTriggered)
+            {
                 _animator.SetTrigger(_dodgeId);
+                _dodgeTriggered = true;
+            }
+            else if (!anim.TriggerDodge)
+            {
+                _dodgeTriggered = false;
+            }
         }
     }
 }
