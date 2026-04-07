@@ -64,7 +64,7 @@ namespace Wander.Character.Systems
                 else
                     verticalVelocity -= stats.Gravity * fixedDeltaTime;
 
-                world.SetOrAddComponent(entity, new MovementStateComponent
+                world.SetComponent(entity, new MovementStateComponent
                 {
                     Velocity   = new float3(horizontal.x, verticalVelocity, horizontal.z),
                     Speed      = speed,

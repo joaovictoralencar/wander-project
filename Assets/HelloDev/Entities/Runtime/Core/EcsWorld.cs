@@ -183,9 +183,9 @@ namespace HelloDev.Entities
         public void GetEntitiesWithComponent<T>(List<Entity> results) where T : unmanaged
         {
             long mask = 1L << ComponentRegistry.GetOrRegister(typeof(T));
-            for (int i = 0; i < _nextEntityId; i++)
-                if ((_signatures[i] & mask) == mask)
-                    results.Add(new Entity(i, _generations[i]));
+            var ids = GetEntitiesWithMask(mask);
+            for (int i = 0; i < ids.Count; i++)
+                results.Add(new Entity(ids[i], _generations[ids[i]]));
         }
 
         /// <summary>
@@ -238,6 +238,22 @@ namespace HelloDev.Entities
             foreach (var queue in _eventQueues.Values)
                 queue.Clear();
         }
+
+        #endregion
+
+        #region Command Buffer
+
+        private readonly EcsCommandBuffer _commandBuffer = new();
+
+        /// <summary>
+        /// Deferred command buffer. Systems can queue structural changes (add/remove components,
+        /// destroy entities) here during execution. Flushed by <see cref="EcsSystemRunner"/>
+        /// after all systems have executed each FixedUpdate.
+        /// </summary>
+        public EcsCommandBuffer Commands => _commandBuffer;
+
+        /// <summary>Called by <see cref="EcsSystemRunner"/> after all systems execute.</summary>
+        public void FlushCommands() => _commandBuffer.Flush(this);
 
         #endregion
 

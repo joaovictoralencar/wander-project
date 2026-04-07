@@ -15,7 +15,6 @@ namespace HelloDev.Entities
         private EcsWorld _world;
         private readonly List<IEcsSystem> _systems = new();
         private readonly List<EcsComponentBridge> _bridges = new();
-        private readonly EcsCommandBuffer _commandBuffer = new();
 
         public EcsWorld World => _world;
 
@@ -109,7 +108,7 @@ namespace HelloDev.Entities
                 system.FixedExecute(_world, entities, Time.fixedDeltaTime);
             }
 
-            _commandBuffer.Flush(_world);
+            _world.FlushCommands();
 
             for (int i = 0; i < _bridges.Count; i++) _bridges[i].FixedPullFromEcs();
         }
