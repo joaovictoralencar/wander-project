@@ -214,29 +214,32 @@ namespace HelloDev.Entities
 
         #endregion
 
-        #region Event Queues
+        #region Events
 
-        private readonly Dictionary<Type, IEcsEventQueue> _eventQueues = new();
+        private readonly Dictionary<Type, IEcsEventChannel> _eventChannels = new();
 
-        public EcsEventQueue<T> GetEventQueue<T>()
+        private EcsEventChannel<T> GetOrCreateChannel<T>()
         {
             var type = typeof(T);
-            if (!_eventQueues.TryGetValue(type, out var queue))
-                _eventQueues[type] = queue = new EcsEventQueue<T>();
-            return (EcsEventQueue<T>)queue;
+            if (!_eventChannels.TryGetValue(type, out var channel))
+                _eventChannels[type] = channel = new EcsEventChannel<T>();
+            return (EcsEventChannel<T>)channel;
         }
 
-        /// <summary>Enqueues an event. Readable by any system or bridge until the next FixedUpdate.</summary>
-        public void EnqueueEvent<T>(T e) => GetEventQueue<T>().Enqueue(e);
+        /// <summary>Buffers an event. Delivered to subscribers when the runner calls <see cref="FlushEvents"/>.</summary>
+        public void Send<T>(T e) => GetOrCreateChannel<T>().Send(e);
 
-        /// <summary>Returns all events of type <typeparamref name="T"/> queued this frame.</summary>
-        public IReadOnlyList<T> ReadEvents<T>() => GetEventQueue<T>().Read();
+        /// <summary>
+        /// Registers a callback for events of type <typeparamref name="T"/>.
+        /// Returns <see cref="IDisposable"/> — dispose to unsubscribe.
+        /// </summary>
+        public IDisposable Subscribe<T>(Action<T> callback) => GetOrCreateChannel<T>().Subscribe(callback);
 
-        /// <summary>Called by <see cref="EcsSystemRunner"/> at the start of each FixedUpdate.</summary>
-        public void ClearAllEvents()
+        /// <summary>Delivers all buffered events to subscribers, then clears each channel.</summary>
+        public void FlushEvents()
         {
-            foreach (var queue in _eventQueues.Values)
-                queue.Clear();
+            foreach (var channel in _eventChannels.Values)
+                channel.Flush();
         }
 
         #endregion
@@ -259,10 +262,11 @@ namespace HelloDev.Entities
 
         public void Dispose()
         {
+            foreach (var channel in _eventChannels.Values)
+                channel.Dispose();
+
             foreach (IComponentStorage storage in _storages.Values)
-            {
                 storage.Dispose();
-            }
         }
 
         public void AddComponentBoxed(Entity entity, Type componentType, object componentData)

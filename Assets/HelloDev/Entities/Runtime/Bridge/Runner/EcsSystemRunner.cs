@@ -95,8 +95,6 @@ namespace HelloDev.Entities
 
         private void FixedUpdate()
         {
-            _world.ClearAllEvents();
-
             for (int i = 0; i < _bridges.Count; i++) _bridges[i].PushToEcs();
 
             for (int i = 0; i < _systems.Count; i++)
@@ -109,6 +107,7 @@ namespace HelloDev.Entities
             }
 
             _world.FlushCommands();
+            _world.FlushEvents();
 
             for (int i = 0; i < _bridges.Count; i++) _bridges[i].FixedPullFromEcs();
         }
@@ -123,6 +122,8 @@ namespace HelloDev.Entities
                     Debug.Log($"[ECS] Update — {system.GetType().Name}: {entities.Count} entity/entities");
                 system.Execute(_world, entities, Time.deltaTime);
             }
+
+            _world.FlushEvents();
 
             for (int i = 0; i < _bridges.Count; i++) _bridges[i].PullFromEcs();
         }

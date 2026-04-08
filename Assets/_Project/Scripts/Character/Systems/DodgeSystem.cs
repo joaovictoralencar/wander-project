@@ -10,7 +10,7 @@ namespace Wander.Character.Systems
 {
     /// <summary>
     /// Manages the dodge state machine each physics step.
-    /// Fires <see cref="DodgeStartedEvent"/> and <see cref="DodgeEndedEvent"/> via the world event queue
+    /// Fires <see cref="DodgeStartedEvent"/> and <see cref="DodgeEndedEvent"/> via the world event bus
     /// so any system or bridge can react without coupling.
     /// </summary>
     [Serializable]
@@ -44,10 +44,12 @@ namespace Wander.Character.Systems
                     {
                         dodge.IsDodging    = false;
                         dodge.ElapsedTime  = dodge.DodgeDuration;
+                        dodge.CooldownRemaining = dodge.Cooldown;
                         moveState.CanMove  = true;
+                        moveState.Speed = math.length(input.Direction.xz);
                         world.SetComponent(entity, dodge);
                         world.SetComponent(entity, moveState);
-                        world.EnqueueEvent(new DodgeEndedEvent { Entity = entity });
+                        world.Send(new DodgeEndedEvent { Entity = entity });
                         EcsDebug.Log($"Dodge ended → Entity({entity.Id})");
                         continue;
                     }
@@ -56,7 +58,13 @@ namespace Wander.Character.Systems
                     continue;
                 }
 
-                if (!input.Dodge)
+                if (dodge.CooldownRemaining > 0f)
+                {
+                    dodge.CooldownRemaining = math.max(0f, dodge.CooldownRemaining - fixedDeltaTime);
+                    world.SetComponent(entity, dodge);
+                }
+
+                if (!input.Dodge || !moveState.IsGrounded || dodge.CooldownRemaining > 0f)
                     continue;
 
                 input.Dodge = false;
@@ -73,7 +81,7 @@ namespace Wander.Character.Systems
                 world.SetComponent(entity, input);
                 world.SetComponent(entity, dodge);
                 world.SetComponent(entity, moveState);
-                world.EnqueueEvent(new DodgeStartedEvent { Entity = entity, Direction = dir });
+                world.Send(new DodgeStartedEvent { Entity = entity, Direction = dir });
                 EcsDebug.Log($"Dodge started → Entity({entity.Id}) dir={dir}");
             }
         }

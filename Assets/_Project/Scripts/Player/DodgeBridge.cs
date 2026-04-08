@@ -10,7 +10,7 @@ namespace Wander
     [Provides(typeof(DodgeComponent))]
     public class DodgeBridge : EcsComponentBridge
     {
-        [SerializeField] private DodgeComponent _dodge = new() { DodgeDuration = 0.4f, DodgeSpeed = 8f };
+        [SerializeField] private DodgeComponent _dodge = new() { DodgeDuration = 0.4f, DodgeSpeed = 8f, Cooldown = 0.5f };
         [SerializeField] private AnimationCurve _dodgeAccelCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
         [SerializeField] private CharacterController _characterController;
 
@@ -24,10 +24,13 @@ namespace Wander
         protected override void OnFixedPullFromEcs()
         {
             var dodge = Get<DodgeComponent>();
-            if (!dodge.IsDodging || _characterController == null) return;
+            if (!dodge.IsDodging || _characterController == null)
+            {
+                return;
+            }
 
-            var   state     = Get<MovementStateComponent>();
-            float t         = dodge.DodgeDuration > 0f ? dodge.ElapsedTime / dodge.DodgeDuration : 0f;
+            var state = Get<MovementStateComponent>();
+            float t = dodge.DodgeDuration > 0f ? dodge.ElapsedTime / dodge.DodgeDuration : 0f;
             float speedMult = _dodgeAccelCurve.Evaluate(t);
 
             var velocity = new UnityEngine.Vector3(

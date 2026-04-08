@@ -66,6 +66,8 @@ namespace Wander.Player
             }
 
             Add(new PositionComponent { Value = (float3)transform.position });
+            
+            Debug.DrawRay(transform.position + Vector3.up * 0.5f, math.normalize(horizontal) * 2f, Color.black, 0f, true);
         }
     }
 }

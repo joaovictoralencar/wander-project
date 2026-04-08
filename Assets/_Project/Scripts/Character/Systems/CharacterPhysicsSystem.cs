@@ -51,10 +51,10 @@ namespace Wander.Character.Systems
                 float verticalVelocity = state.Velocity.y;
                 if (state.IsGrounded)
                 {
-                    if (input.Jump)
+                    if (input.Jump && state.CanMove)
                     {
                         verticalVelocity = stats.JumpForce;
-                        world.EnqueueEvent(new JumpStartedEvent { Entity = entity });
+                        world.Send(new JumpStartedEvent { Entity = entity });
                     }
                     else
                     {

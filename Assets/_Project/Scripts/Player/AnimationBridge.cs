@@ -1,12 +1,16 @@
+using System;
 using HelloDev.Entities;
 using UnityEngine;
 using Wander.Character.Components;
+using Wander.Character.Events;
 using Wander.Character.Systems;
 
 namespace Wander.Player
 {
     /// <summary>
-    /// Pure pull bridge: reads <see cref="AnimationStateComponent"/> and drives the <see cref="Animator"/>.
+    /// Reads <see cref="AnimationStateComponent"/> for continuous state (speed, grounded)
+    /// and subscribes to events (<see cref="JumpStartedEvent"/>, <see cref="DodgeStartedEvent"/>)
+    /// for one-shot triggers.
     /// </summary>
     [RequiresSystem(typeof(AnimationStateSystem))]
     [Provides(typeof(AnimationStateComponent))]
@@ -27,10 +31,8 @@ namespace Wander.Player
         private int _freeFallId;
         private int _dodgeId;
 
-        // Rising-edge detection — ensures SetTrigger fires exactly once per event,
-        // not every Update frame while the event flag stays true.
-        private bool _jumpTriggered;
-        private bool _dodgeTriggered;
+        private IDisposable _jumpSub;
+        private IDisposable _dodgeSub;
 
         private void Awake()
         {
@@ -69,7 +71,22 @@ namespace Wander.Player
         }
 #endif
 
-        protected override void OnInitialize() => Add(new AnimationStateComponent { IsGrounded = true });
+        protected override void OnInitialize()
+        {
+            Add(new AnimationStateComponent { IsGrounded = true });
+
+            _jumpSub = World.Subscribe<JumpStartedEvent>(e =>
+            {
+                if (e.Entity == Entity && _animator != null)
+                    _animator.SetTrigger(_jumpId);
+            });
+
+            _dodgeSub = World.Subscribe<DodgeStartedEvent>(e =>
+            {
+                if (e.Entity == Entity && _animator != null)
+                    _animator.SetTrigger(_dodgeId);
+            });
+        }
 
         protected override void OnPullFromEcs()
         {
@@ -79,28 +96,14 @@ namespace Wander.Player
 
             _animator.SetFloat(_speedId,   anim.SpeedBlend);
             _animator.SetBool(_groundedId, anim.IsGrounded);
-            _animator.SetBool(_freeFallId, !anim.IsGrounded && !anim.TriggerJump);
+            _animator.SetBool(_freeFallId, !anim.IsGrounded);
+        }
 
-            // One-shot triggers: fire once per rising edge, then wait for flag to clear.
-            if (anim.TriggerJump && !_jumpTriggered)
-            {
-                _animator.SetTrigger(_jumpId);
-                _jumpTriggered = true;
-            }
-            else if (!anim.TriggerJump)
-            {
-                _jumpTriggered = false;
-            }
-
-            if (anim.TriggerDodge && !_dodgeTriggered)
-            {
-                _animator.SetTrigger(_dodgeId);
-                _dodgeTriggered = true;
-            }
-            else if (!anim.TriggerDodge)
-            {
-                _dodgeTriggered = false;
-            }
+        protected override void OnDestroy()
+        {
+            _jumpSub?.Dispose();
+            _dodgeSub?.Dispose();
+            base.OnDestroy();
         }
     }
 }
