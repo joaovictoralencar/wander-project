@@ -119,6 +119,17 @@ namespace HelloDev.Entities
                 bridges[i].Initialize(World, Entity);
                 runner.RegisterBridge(bridges[i]);
             }
+
+            // Discover managed systems (MonoBehaviour-based systems that need Unity APIs).
+            var managedSystems = GetComponentsInChildren<EcsManagedSystem>();
+            for (var i = 0; i < managedSystems.Length; i++)
+            {
+                var closestRoot = managedSystems[i].GetComponentInParent<EcsEntityRoot>();
+                if (closestRoot != this) continue;
+
+                managedSystems[i].Initialize(World, Entity);
+                runner.RegisterManagedSystem(managedSystems[i]);
+            }
         }
 
         private void OnDestroy()

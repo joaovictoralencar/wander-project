@@ -1,5 +1,6 @@
 using System;
 using Unity.Mathematics;
+using Wander.Character.Attack;
 
 namespace Wander.Character.Components
 {
@@ -8,9 +9,9 @@ namespace Wander.Character.Components
     {
         // All runtime — written by PlayerInputBridge each frame
         [NonSerialized] public float3 Direction;
-        [NonSerialized] public bool   Sprint;
-        [NonSerialized] public bool   Jump;
-        [NonSerialized] public bool   Attack;
-        [NonSerialized] public bool   Dodge;
+        [NonSerialized] public bool Sprint;
+        [NonSerialized] public bool Jump;
+        [NonSerialized] public bool Dodge;
+        [NonSerialized] public AttackInputType AttackInput;
     }
 }

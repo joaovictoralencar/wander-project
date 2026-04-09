@@ -2,6 +2,7 @@ using HelloDev.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Wander.Character.Attack;
 using Wander.Character.Components;
 
 namespace Wander.Player
@@ -19,8 +20,8 @@ namespace Wander.Player
         private Vector2 _moveInput;
         private bool _sprint;
         private bool _jumpPressed;
-        private bool _attackPressed;
         private bool _dodgePressed;
+        private AttackInputType _attackInputType;
 
         private void Awake()
         {
@@ -61,13 +62,13 @@ namespace Wander.Player
                 Direction = direction,
                 Sprint = _sprint,
                 Jump = _jumpPressed,
-                Attack = _attackPressed,
-                Dodge = _dodgePressed
+                Dodge = _dodgePressed,
+                AttackInput = _attackInputType,
             });
 
             _jumpPressed = false;
-            _attackPressed = false;
             _dodgePressed = false;
+            _attackInputType = AttackInputType.None;
         }
 
         // ── Unity Event receivers ───────
@@ -88,16 +89,22 @@ namespace Wander.Player
                 _jumpPressed = true;
         }
 
-        public void OnAttack(InputAction.CallbackContext context)
-        {
-            if (context.performed)
-                _attackPressed = true;
-        }
-
         public void OnDodge(InputAction.CallbackContext context)
         {
             if (context.performed)
                 _dodgePressed = true;
+        }
+
+        public void OnLightAttack(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                _attackInputType = AttackInputType.Light;
+        }
+
+        public void OnHeavyAttack(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                _attackInputType = AttackInputType.Heavy;
         }
     }
 }

@@ -14,6 +14,12 @@ namespace HelloDev.Entities
     /// Use <c>[RequiresSystem(typeof(...))]</c> to declare system dependencies and
     /// <c>[Provides(typeof(...))]</c> to declare owned components (used for editor validation).
     /// </para>
+    /// <para>
+    /// <b>Dual-state convention:</b> ECS components hold state that systems read/write
+    /// (unmanaged, deterministic). Bridge fields hold state that only Unity needs
+    /// (managed references, visual state). If a system might need the data, put it
+    /// in the component; otherwise keep it on the bridge.
+    /// </para>
     /// </summary>
     public abstract class EcsComponentBridge : MonoBehaviour
     {
@@ -67,6 +73,12 @@ namespace HelloDev.Entities
 
         /// <summary>Returns true if the entity currently has the given component.</summary>
         protected bool Has<T>() where T : unmanaged => World.HasComponent<T>(Entity);
+
+        /// <summary>
+        /// Returns a scoped modifier that reads the component now and writes it back on Dispose.
+        /// Use with <c>using</c>: <c>using var scope = Modify&lt;T&gt;(); scope.Value.Field = x;</c>
+        /// </summary>
+        protected ComponentScope<T> Modify<T>() where T : unmanaged => new(World, Entity);
 
         #endregion
 

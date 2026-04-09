@@ -820,8 +820,8 @@ ModelImporter:
       name: 1.Roll
       takeName: Armature|Roll
       internalID: 3031411921458128146
-      firstFrame: 0
-      lastFrame: 44
+      firstFrame: 3.4
+      lastFrame: 30
       wrapMode: 0
       orientationOffsetY: -10
       level: 0

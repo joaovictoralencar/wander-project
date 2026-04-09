@@ -39,9 +39,8 @@ namespace Wander.Player
 
         protected override void OnPushToEcs()
         {
-            var state = Get<MovementStateComponent>();
-            state.IsGrounded = _characterController.isGrounded;
-            Set(state);
+            using var state = Modify<MovementStateComponent>();
+            state.Value.IsGrounded = _characterController.isGrounded;
         }
 
         protected override void OnFixedPullFromEcs()

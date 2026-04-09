@@ -155,6 +155,21 @@ namespace HelloDev.Entities
             return GetOrCreateComponentStorage<T>().Get(entity.Id);
         }
 
+        /// <summary>
+        /// Attempts to get a component from the entity. Returns false if the entity
+        /// is dead or doesn't have the component. Avoids the double lookup of HasComponent + GetComponent.
+        /// </summary>
+        public bool TryGetComponent<T>(Entity entity, out T value) where T : unmanaged
+        {
+            if (IsAlive(entity) && HasComponent<T>(entity))
+            {
+                value = GetOrCreateComponentStorage<T>().Get(entity.Id);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
         public void SetComponent<T>(Entity entity, T value) where T : unmanaged
         {
             // SetComponent updates data only — it does not add the component or update the signature.

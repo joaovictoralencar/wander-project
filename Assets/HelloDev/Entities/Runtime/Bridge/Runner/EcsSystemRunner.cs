@@ -15,6 +15,12 @@ namespace HelloDev.Entities
         private EcsWorld _world;
         private readonly List<IEcsSystem> _systems = new();
         private readonly List<EcsComponentBridge> _bridges = new();
+        private readonly List<EcsManagedSystem> _managedSystems = new();
+
+        [Header("Global Systems")]
+        [Tooltip("Systems that are always active regardless of entity composition. Use for event-only systems (e.g. DamageSystem).")]
+        [SerializeReference]
+        public List<EcsSystemBase> GlobalSystems = new();
 
         public EcsWorld World => _world;
 
@@ -46,6 +52,10 @@ namespace HelloDev.Entities
             ComponentRegistry.Reset();
             _world = new EcsWorld();
 
+            for (int i = 0; i < GlobalSystems.Count; i++)
+                if (GlobalSystems[i] != null)
+                    AddSystem(GlobalSystems[i]);
+
             EcsDebug.Log("World created.");
         }
 
@@ -53,8 +63,9 @@ namespace HelloDev.Entities
         {
             if (!_debugLogs) return;
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"[ECS] Runner ready — {_systems.Count} system(s), {_bridges.Count} bridge(s)");
+            sb.AppendLine($"[ECS] Runner ready — {_systems.Count} system(s), {_managedSystems.Count} managed system(s), {_bridges.Count} bridge(s)");
             foreach (var s in _systems) sb.AppendLine($"  + {s.GetType().Name}");
+            foreach (var ms in _managedSystems) sb.AppendLine($"  ▸ {ms.name} ({ms.GetType().Name})");
             foreach (var b in _bridges) sb.AppendLine($"  ~ {b.name} ({b.GetType().Name})");
             Debug.Log(sb.ToString().TrimEnd());
         }
@@ -93,6 +104,19 @@ namespace HelloDev.Entities
             _bridges.Remove(bridge);
         }
 
+        public void RegisterManagedSystem(EcsManagedSystem system)
+        {
+            if (_managedSystems.Contains(system)) return;
+            _managedSystems.Add(system);
+            _managedSystems.Sort((a, b) => a.Order.CompareTo(b.Order));
+            EcsDebug.Log($"ManagedSystem registered: {system.GetType().Name} (order={system.Order})");
+        }
+
+        internal void UnregisterManagedSystem(EcsManagedSystem system)
+        {
+            _managedSystems.Remove(system);
+        }
+
         private void FixedUpdate()
         {
             for (int i = 0; i < _bridges.Count; i++) _bridges[i].PushToEcs();
@@ -107,6 +131,10 @@ namespace HelloDev.Entities
             }
 
             _world.FlushCommands();
+
+            for (int i = 0; i < _managedSystems.Count; i++)
+                _managedSystems[i].ManagedFixedUpdate(Time.fixedDeltaTime);
+
             _world.FlushEvents();
 
             for (int i = 0; i < _bridges.Count; i++) _bridges[i].FixedPullFromEcs();
@@ -123,6 +151,9 @@ namespace HelloDev.Entities
                 system.Execute(_world, entities, Time.deltaTime);
             }
 
+            for (int i = 0; i < _managedSystems.Count; i++)
+                _managedSystems[i].ManagedUpdate(Time.deltaTime);
+
             _world.FlushEvents();
 
             for (int i = 0; i < _bridges.Count; i++) _bridges[i].PullFromEcs();
@@ -133,6 +164,7 @@ namespace HelloDev.Entities
             Instance = null;
 
             foreach (var system in _systems) system.Dispose();
+            foreach (var ms in _managedSystems) ms.ManagedDispose();
             _world.Dispose();
         }
     }
