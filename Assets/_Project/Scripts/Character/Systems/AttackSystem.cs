@@ -21,7 +21,6 @@ namespace Wander.Character.Systems
         public override Type[] RequiredComponents => new[]
         {
             typeof(MoveInputComponent),
-            typeof(MovementStateComponent),
             typeof(AttackComponent),
         };
 
@@ -34,7 +33,6 @@ namespace Wander.Character.Systems
                 var entity    = world.GetEntity(entities[i]);
                 var input     = world.GetComponent<MoveInputComponent>(entity);
                 var attack    = world.GetComponent<AttackComponent>(entity);
-                var moveState = world.GetComponent<MovementStateComponent>(entity);
 
                 // ── Buffer incoming input ──
                 if (input.AttackInput != AttackInputType.None)
@@ -82,10 +80,8 @@ namespace Wander.Character.Systems
                         attack.HitboxActive     = false;
                         attack.ComboWindowOpen  = false;
                         attack.BufferedInput    = AttackInputType.None;
-                        moveState.CanMove       = true;
 
                         world.SetComponent(entity, attack);
-                        world.SetComponent(entity, moveState);
                         world.Send(new AttackEndedEvent { Entity = entity });
                         continue;
                     }
@@ -95,35 +91,31 @@ namespace Wander.Character.Systems
                 }
 
                 // ── Not attacking — start new combo if input buffered and grounded ──
-                if (attack.BufferedInput != AttackInputType.None && moveState.IsGrounded)
+                if (attack.BufferedInput != AttackInputType.None)
                 {
-                    attack.IsAttacking      = true;
-                    attack.CurrentStepIndex = 0;
-                    attack.ComboInputCount  = 1;
-                    attack.ElapsedTime      = 0f;
-                    attack.HitboxActive     = false;
-                    attack.ComboWindowOpen  = false;
-                    attack.HitLanded        = false;
-                    moveState.CanMove       = false;
+                    bool isGrounded = !world.TryGetComponent<MovementStateComponent>(entity, out var moveState) || moveState.IsGrounded;
 
-                    attack.BufferedInput = AttackInputType.None;
-
-                    world.SetComponent(entity, attack);
-                    world.SetComponent(entity, moveState);
-                    world.Send(new AttackStepStartedEvent
+                    if (isGrounded)
                     {
-                        Entity     = entity,
-                        ComboIndex = -1,  // bridge must resolve via input matching
-                        StepIndex  = 0,
-                    });
-                    continue;
-                }
+                        attack.IsAttacking      = true;
+                        attack.CurrentStepIndex = 0;
+                        attack.ComboInputCount  = 1;
+                        attack.ElapsedTime      = 0f;
+                        attack.HitboxActive     = false;
+                        attack.ComboWindowOpen  = false;
+                        attack.HitLanded        = false;
 
-                // Clear stale buffered input when not attacking and not grounded
-                if (attack.BufferedInput != AttackInputType.None && !moveState.IsGrounded)
-                {
-                    attack.BufferedInput = AttackInputType.None;
-                    world.SetComponent(entity, attack);
+                        attack.BufferedInput = AttackInputType.None;
+
+                        world.SetComponent(entity, attack);
+                        world.Send(new AttackComboStartEvent { Entity = entity });
+                    }
+                    else
+                    {
+                        // Clear stale buffered input when not grounded
+                        attack.BufferedInput = AttackInputType.None;
+                        world.SetComponent(entity, attack);
+                    }
                 }
             }
         }

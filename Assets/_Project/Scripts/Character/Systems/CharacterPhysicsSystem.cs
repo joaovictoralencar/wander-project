@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HelloDev.Entities;
 using Unity.Mathematics;
+using Wander;
 using Wander.Character.Components;
 using Wander.Character.Events;
 
@@ -16,7 +17,9 @@ namespace Wander.Character.Systems
     [Serializable]
     public class CharacterPhysicsSystem : EcsSystemBase
     {
-        public override int Order => -10;
+        // Runs AFTER Dodge (0) and Attack (5) so it can read their flags
+        // and act as the single resolver for derived movement state (CanMove, Speed).
+        public override int Order => 50;
 
         public override Type[] RequiredComponents => new[]
         {
@@ -36,10 +39,16 @@ namespace Wander.Character.Systems
                 var stats  = world.GetComponent<MovementStatsComponent>(entity);
                 var state  = world.GetComponent<MovementStateComponent>(entity);
 
-                // Horizontal — suppressed when CanMove is false (e.g. during a dodge).
+                // Resolve CanMove from ability flags — single authority for this derived value.
+                bool canMove = true;
+                if (world.TryGetComponent<DodgeComponent>(entity, out var dodge) && dodge.IsDodging)
+                    canMove = false;
+                if (world.TryGetComponent<AttackComponent>(entity, out var attack) && attack.IsAttacking)
+                    canMove = false;
+
                 float3 horizontal = float3.zero;
                 float  speed      = 0f;
-                if (state.CanMove)
+                if (canMove)
                 {
                     float targetSpeed   = input.Sprint ? stats.RunSpeed : stats.WalkSpeed;
                     float inputStrength = math.saturate(math.length(input.Direction));
@@ -51,7 +60,7 @@ namespace Wander.Character.Systems
                 float verticalVelocity = state.Velocity.y;
                 if (state.IsGrounded)
                 {
-                    if (input.Jump && state.CanMove)
+                    if (input.Jump && canMove)
                     {
                         verticalVelocity = stats.JumpForce;
                         world.Send(new JumpStartedEvent { Entity = entity });
@@ -69,7 +78,7 @@ namespace Wander.Character.Systems
                     Velocity   = new float3(horizontal.x, verticalVelocity, horizontal.z),
                     Speed      = speed,
                     IsGrounded = state.IsGrounded,
-                    CanMove    = state.CanMove,
+                    CanMove    = canMove,
                 });
             }
         }

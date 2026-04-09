@@ -21,7 +21,6 @@ namespace Wander.Character.Systems
         public override Type[] RequiredComponents => new[]
         {
             typeof(MoveInputComponent),
-            typeof(MovementStateComponent),
             typeof(DodgeComponent),
         };
 
@@ -34,7 +33,6 @@ namespace Wander.Character.Systems
                 var entity   = world.GetEntity(entities[i]);
                 var input    = world.GetComponent<MoveInputComponent>(entity);
                 var dodge    = world.GetComponent<DodgeComponent>(entity);
-                var moveState = world.GetComponent<MovementStateComponent>(entity);
 
                 if (dodge.IsDodging)
                 {
@@ -45,10 +43,7 @@ namespace Wander.Character.Systems
                         dodge.IsDodging    = false;
                         dodge.ElapsedTime  = dodge.DodgeDuration;
                         dodge.CooldownRemaining = dodge.Cooldown;
-                        moveState.CanMove  = true;
-                        moveState.Speed = math.length(input.Direction.xz);
                         world.SetComponent(entity, dodge);
-                        world.SetComponent(entity, moveState);
                         world.Send(new DodgeEndedEvent { Entity = entity });
                         EcsDebug.Log($"Dodge ended → Entity({entity.Id})");
                         continue;
@@ -64,7 +59,15 @@ namespace Wander.Character.Systems
                     world.SetComponent(entity, dodge);
                 }
 
-                if (!input.Dodge || !moveState.IsGrounded || dodge.CooldownRemaining > 0f)
+                if (!input.Dodge || dodge.CooldownRemaining > 0f)
+                    continue;
+
+                // Need grounded check — read from MovementStateComponent if present
+                if (world.TryGetComponent<MovementStateComponent>(entity, out var moveState) && !moveState.IsGrounded)
+                    continue;
+
+                // Block dodge entirely while attacking
+                if (world.TryGetComponent<AttackComponent>(entity, out var attack) && attack.IsAttacking)
                     continue;
 
                 input.Dodge = false;
@@ -76,11 +79,9 @@ namespace Wander.Character.Systems
                 dodge.IsDodging    = true;
                 dodge.ElapsedTime  = 0f;
                 dodge.Direction    = dir;
-                moveState.CanMove  = false;
 
                 world.SetComponent(entity, input);
                 world.SetComponent(entity, dodge);
-                world.SetComponent(entity, moveState);
                 world.Send(new DodgeStartedEvent { Entity = entity, Direction = dir });
                 EcsDebug.Log($"Dodge started → Entity({entity.Id}) dir={dir}");
             }
