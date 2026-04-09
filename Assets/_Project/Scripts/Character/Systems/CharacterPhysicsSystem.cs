@@ -39,6 +39,11 @@ namespace Wander.Character.Systems
                 var stats  = world.GetComponent<MovementStatsComponent>(entity);
                 var state  = world.GetComponent<MovementStateComponent>(entity);
 
+                // Compute input-based speed always (for animation blend even during dodge/attack).
+                float targetSpeed   = input.Sprint ? stats.RunSpeed : stats.WalkSpeed;
+                float inputStrength = math.saturate(math.length(input.Direction));
+                float speed         = targetSpeed * inputStrength;
+
                 // Resolve CanMove from ability flags — single authority for this derived value.
                 bool canMove = true;
                 if (world.TryGetComponent<DodgeComponent>(entity, out var dodge) && dodge.IsDodging)
@@ -47,14 +52,8 @@ namespace Wander.Character.Systems
                     canMove = false;
 
                 float3 horizontal = float3.zero;
-                float  speed      = 0f;
                 if (canMove)
-                {
-                    float targetSpeed   = input.Sprint ? stats.RunSpeed : stats.WalkSpeed;
-                    float inputStrength = math.saturate(math.length(input.Direction));
-                    horizontal = math.normalizesafe(input.Direction) * targetSpeed * inputStrength;
-                    speed      = math.length(horizontal);
-                }
+                    horizontal = math.normalizesafe(input.Direction) * speed;
 
                 // Vertical
                 float verticalVelocity = state.Velocity.y;
