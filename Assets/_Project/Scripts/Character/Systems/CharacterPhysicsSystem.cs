@@ -28,21 +28,23 @@ namespace Wander.Character.Systems
             typeof(MovementStateComponent),
         };
 
-        public override void Initialize(EcsWorld world) { }
+        public override void Initialize(EcsWorld world)
+        {
+        }
 
         public override void FixedExecute(EcsWorld world, List<int> entities, float fixedDeltaTime)
         {
             for (var i = 0; i < entities.Count; i++)
             {
                 var entity = world.GetEntity(entities[i]);
-                var input  = world.GetComponent<MoveInputComponent>(entity);
-                var stats  = world.GetComponent<MovementStatsComponent>(entity);
-                var state  = world.GetComponent<MovementStateComponent>(entity);
+                var input = world.GetComponent<MoveInputComponent>(entity);
+                var stats = world.GetComponent<MovementStatsComponent>(entity);
+                var state = world.GetComponent<MovementStateComponent>(entity);
 
                 // Compute input-based speed always (for animation blend even during dodge/attack).
-                float targetSpeed   = input.Sprint ? stats.RunSpeed : stats.WalkSpeed;
+                float targetSpeed = input.Sprint ? stats.RunSpeed : stats.WalkSpeed;
                 float inputStrength = math.saturate(math.length(input.Direction));
-                float speed         = targetSpeed * inputStrength;
+                float speed = targetSpeed * inputStrength;
 
                 // Resolve CanMove from ability flags — single authority for this derived value.
                 bool canMove = true;
@@ -74,10 +76,10 @@ namespace Wander.Character.Systems
 
                 world.SetComponent(entity, new MovementStateComponent
                 {
-                    Velocity   = new float3(horizontal.x, verticalVelocity, horizontal.z),
-                    Speed      = speed,
+                    Velocity = new float3(horizontal.x, verticalVelocity, horizontal.z),
+                    Speed = speed,
                     IsGrounded = state.IsGrounded,
-                    CanMove    = canMove,
+                    CanMove = canMove,
                 });
             }
         }

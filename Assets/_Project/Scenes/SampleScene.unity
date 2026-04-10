@@ -217,7 +217,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.15304591, y: 0.6903456, z: -0.15304591, w: 0.6903456}
-  m_LocalPosition: {x: -6.4696655, y: 5.0553684, z: 0.0000009183424}
+  m_LocalPosition: {x: -6.4696655, y: 5.0553684, z: 8.2300005}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1264,7 +1264,7 @@ Transform:
   m_GameObject: {fileID: 1736579021}
   serializedVersion: 2
   m_LocalRotation: {x: 0.15304591, y: 0.6903456, z: -0.15304591, w: 0.6903456}
-  m_LocalPosition: {x: -6.4696655, y: 5.0553684, z: 0.0000009183424}
+  m_LocalPosition: {x: -6.4696655, y: 5.0553684, z: 8.2300005}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1401,7 +1401,7 @@ Transform:
   m_GameObject: {fileID: 1841136236}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 8.23}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1653,7 +1653,7 @@ MonoBehaviour:
     RunSpeed: 6
     JumpForce: 7
     Gravity: 18
-    RotationSpeed: 12
+    RotationSpeed: 18
 --- !u!114 &1841136244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1726,12 +1726,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WanderProject::Wander.Player.AttackBridge
   _combos:
-  - {fileID: 11400000, guid: 08225507e6b0c7d4d8c8810c6ee66f2a, type: 2}
+  - {fileID: 11400000, guid: 70751a76857f30740ba66333c166fcdf, type: 2}
+  _attack:
+    RecoveryFraction: 5
   _animator: {fileID: 1745685703}
   _hitboxCollider: {fileID: 69089418}
   _attackStateA: AttackA
   _attackStateB: AttackB
-  _crossFadeDuration: 0.2
+  _crossFadeDuration: 0.25
 --- !u!1001 &5595715615495073115
 PrefabInstance:
   m_ObjectHideFlags: 0

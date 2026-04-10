@@ -15,18 +15,23 @@ namespace Wander.Player
     public class AttackBridge : EcsComponentBridge, IAttackAnimEventReceiver
     {
         private static readonly int SwordLayerActivated = Animator.StringToHash("SwordLayerActivated");
-        
-        [Header("Combo Data")]
-        [SerializeField] private ComboDefinition[] _combos;
+        private static readonly int AttackSpeed = Animator.StringToHash("AttackSpeed");
 
-        [Header("References")]
-        [SerializeField] private Animator _animator;
+        [Header("Combo Data")] [SerializeField]
+        private ComboDefinition[] _combos;
+
+        [SerializeField] private AttackComponent _attack = new() { RecoveryFraction = 0.1f };
+
+        [Header("References")] [SerializeField]
+        private Animator _animator;
+
         [SerializeField] private Collider _hitboxCollider;
 
-        [Header("Animator Override")]
-        [SerializeField] private string _attackStateA = "AttackA";
+        [Header("Animator Override")] [SerializeField]
+        private string _attackStateA = "AttackA";
+
         [SerializeField] private string _attackStateB = "AttackB";
-        [SerializeField] private float  _crossFadeDuration = 0.1f;
+        [SerializeField] private float _crossFadeDuration = 0.1f;
 
         private AnimatorOverrideController _overrideController;
         private AnimationClip _slotClipA;
@@ -107,9 +112,9 @@ namespace Wander.Player
 
         protected override void OnInitialize()
         {
-            Add(new AttackComponent());
+            Add(_attack);
 
-            _comboStartSub  = World.Subscribe<AttackComboStartEvent>(OnComboStart);
+            _comboStartSub = World.Subscribe<AttackComboStartEvent>(OnComboStart);
             _stepStartedSub = World.Subscribe<AttackStepStartedEvent>(OnStepStarted);
             _attackEndedSub = World.Subscribe<AttackEndedEvent>(OnAttackEnded);
         }
@@ -176,12 +181,14 @@ namespace Wander.Player
             }
 
             var step = combo.Steps[0];
-            attack.StepDuration = step.Clip != null ? step.Clip.length : 0.5f;
+            float rate = step.PlayRate > 0f ? step.PlayRate : 1f;
+            attack.StepDuration = (step.Clip != null ? step.Clip.length : 0.5f) / rate;
+            attack.StepDuration *= .9f; // added slightly delay to make sure the attack animation doesn't go until the end of the clip for steps
             attack.StepDamageMultiplier = step.DamageMultiplier;
             attack.MaxSteps = combo.Steps.Length;
             Set(attack);
 
-            PlayClip(step.Clip);
+            PlayClip(step.Clip, step.PlayRate);
         }
 
         private void OnStepStarted(AttackStepStartedEvent e)
@@ -206,22 +213,23 @@ namespace Wander.Player
             }
 
             var step = combo.Steps[stepIndex];
-            attack.StepDuration = step.Clip != null ? step.Clip.length : 0.5f;
+            float rate = step.PlayRate > 0f ? step.PlayRate : 1f;
+            attack.StepDuration = (step.Clip != null ? step.Clip.length : 0.5f) / rate;
             attack.StepDamageMultiplier = step.DamageMultiplier;
             Set(attack);
 
-            PlayClip(step.Clip);
+            PlayClip(step.Clip, step.PlayRate);
         }
 
         private void OnAttackEnded(AttackEndedEvent e)
         {
             if (e.Entity != Entity) return;
-            _animator.SetBool(SwordLayerActivated, true);
             EndAttack();
         }
 
         private void EndAttack()
         {
+            _animator.SetBool(SwordLayerActivated, true);
             _inputHistory.Clear();
             if (_hitboxCollider != null)
                 _hitboxCollider.enabled = false;
@@ -267,18 +275,18 @@ namespace Wander.Player
         }
 
         // ── Animation Playback ──
-
-        private void PlayClip(AnimationClip clip)
+        private void PlayClip(AnimationClip clip, float playRate = 1f)
         {
             if (_overrideController == null || clip == null) return;
 
-            var slotClip  = _useStateA ? _slotClipA  : _slotClipB;
+            var slotClip = _useStateA ? _slotClipA : _slotClipB;
             var stateName = _useStateA ? _attackStateA : _attackStateB;
 
             if (slotClip == null) return;
 
             _overrideController[slotClip] = clip;
             _animator.Update(0f);
+            _animator.SetFloat(AttackSpeed, playRate);
             _animator.CrossFadeInFixedTime(stateName, _crossFadeDuration);
             _useStateA = !_useStateA;
             _animator.SetBool("SwordLayerActivated", false);
@@ -292,7 +300,9 @@ namespace Wander.Player
             TrackInput(input.AttackInput);
         }
 
-        protected override void OnFixedPullFromEcs() { }
+        protected override void OnFixedPullFromEcs()
+        {
+        }
 
         // ── Hitbox Collision ──
 
@@ -309,13 +319,13 @@ namespace Wander.Player
 
             var stats = Get<CombatStatsComponent>();
             float finalDamage = (stats.BaseDamage + stats.BonusDamage)
-                              * attack.StepDamageMultiplier;
+                                * attack.StepDamageMultiplier;
 
             World.Send(new HitEvent
             {
                 Attacker = Entity,
-                Target   = targetRoot.Entity,
-                Damage   = finalDamage,
+                Target = targetRoot.Entity,
+                Damage = finalDamage,
             });
         }
 

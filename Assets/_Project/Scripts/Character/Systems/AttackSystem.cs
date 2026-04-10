@@ -59,7 +59,7 @@ namespace Wander.Character.Systems
                         // Bounds check — don't advance past the last step
                         if (nextStep >= attack.MaxSteps)
                         {
-                            attack.BufferedInput = AttackInputType.None;
+                            // Preserve buffered input for new combo after recovery
                             attack.ComboWindowOpen = false;
                             world.SetComponent(entity, attack);
                             continue;
@@ -90,7 +90,20 @@ namespace Wander.Character.Systems
                         attack.IsAttacking      = false;
                         attack.HitboxActive     = false;
                         attack.ComboWindowOpen  = false;
-                        attack.BufferedInput    = AttackInputType.None;
+
+                        // Enter recovery cooldown (fraction of last step's clip length)
+                        float recoveryTime = attack.StepDuration * attack.RecoveryFraction;
+                        if (recoveryTime > 0f)
+                        {
+                            attack.IsRecovering     = true;
+                            attack.RecoveryDuration = recoveryTime;
+                            attack.RecoveryElapsed  = 0f;
+                            // Keep BufferedInput so queued input survives recovery
+                        }
+                        else
+                        {
+                            attack.BufferedInput = AttackInputType.None;
+                        }
 
                         world.SetComponent(entity, attack);
                         world.Send(new AttackEndedEvent { Entity = entity });
@@ -99,6 +112,22 @@ namespace Wander.Character.Systems
 
                     world.SetComponent(entity, attack);
                     continue;
+                }
+
+                // ── Recovery cooldown — block new combos until window elapses ──
+                if (attack.IsRecovering)
+                {
+                    attack.RecoveryElapsed += fixedDeltaTime;
+                    if (attack.RecoveryElapsed >= attack.RecoveryDuration)
+                    {
+                        attack.IsRecovering = false;
+                        // Fall through to allow new combo if input is buffered
+                    }
+                    else
+                    {
+                        world.SetComponent(entity, attack);
+                        continue;
+                    }
                 }
 
                 // ── Not attacking — start new combo if input buffered and grounded ──

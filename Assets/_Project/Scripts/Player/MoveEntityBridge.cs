@@ -12,7 +12,7 @@ namespace Wander.Player
     /// Owns PositionComponent, MovementStateComponent, and MovementStatsComponent.
     /// </summary>
     [RequiresSystem(typeof(CharacterPhysicsSystem))]
-    [Provides(typeof(PositionComponent), typeof(MovementStateComponent), typeof(MovementStatsComponent))]
+    [Provides(typeof(TransformSnapshotComponent), typeof(MovementStateComponent), typeof(MovementStatsComponent))]
     [RequireComponent(typeof(CharacterController))]
     public class MoveEntityBridge : EcsComponentBridge
     {
@@ -32,15 +32,17 @@ namespace Wander.Player
 
         protected override void OnInitialize()
         {
-            Add(new PositionComponent());
             Add(new MovementStateComponent { IsGrounded = true, CanMove = true });
             Add(_stats);
+            Add(new TransformSnapshotComponent());
+            WriteTransformSnapshot();
         }
 
         protected override void OnPushToEcs()
         {
             using var state = Modify<MovementStateComponent>();
             state.Value.IsGrounded = _characterController.isGrounded;
+            WriteTransformSnapshot();
         }
 
         protected override void OnFixedPullFromEcs()
@@ -49,24 +51,37 @@ namespace Wander.Player
 
             if (!state.CanMove)
             {
-                Add(new PositionComponent { Value = (float3)transform.position });
+                WriteTransformSnapshot();
                 return;
             }
-
-            var stats = Get<MovementStatsComponent>();
-
+            
             _characterController.Move((Vector3)state.Velocity * Time.fixedDeltaTime);
 
             float3 horizontal = new float3(state.Velocity.x, 0f, state.Velocity.z);
+            
+            var stats = Get<MovementStatsComponent>();
+            
             if (math.lengthsq(horizontal) > 0.01f)
             {
-                var targetRot = Quaternion.LookRotation((Vector3)math.normalize(horizontal));
+                Quaternion targetRot = Quaternion.LookRotation((Vector3)math.normalize(horizontal));
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, stats.RotationSpeed * Time.fixedDeltaTime);
             }
 
-            Add(new PositionComponent { Value = (float3)transform.position });
+            WriteTransformSnapshot();
             
             Debug.DrawRay(transform.position + Vector3.up * 0.5f, math.normalize(horizontal) * 2f, Color.black, 0f, true);
+        }
+
+        private void WriteTransformSnapshot()
+        {
+            Set(new TransformSnapshotComponent
+            {
+                Position = transform.position,
+                Rotation = transform.rotation,
+                Forward = transform.forward,
+                Right = transform.right,
+                Scale = transform.lossyScale,
+            });
         }
     }
 }

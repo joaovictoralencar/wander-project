@@ -22,7 +22,7 @@ namespace Wander.Character.Attack
         private IDisposable _stepStartedSub;
         private IDisposable _attackEndedSub;
         private bool _isAttacking;
-        private bool gravityEnabled;
+        private bool _gravityDisabled;
 
         private void Awake()
         {
@@ -42,20 +42,19 @@ namespace Wander.Character.Attack
         private void OnComboStart(AttackComboStartEvent obj)
         {
             _isAttacking = true;
-            OnDisableGravity();
+            _gravityDisabled = false;
         }
 
         private void OnStepStarted(AttackStepStartedEvent attackStepStartedEvent)
         {
             _isAttacking = true;
-            gravityEnabled = false;
-            OnDisableGravity();
+            _gravityDisabled = false;
         }
 
         private void OnAttackEnded(AttackEndedEvent attackEndedEvent)
         {
             _isAttacking = false;
-            OnDisableGravity();
+            _gravityDisabled = false;
         }
 
 
@@ -72,23 +71,27 @@ namespace Wander.Character.Attack
         public void OnComboWindowClose() => _receiver?.OnComboWindowClose();
         public void OnHitboxActivate() => _receiver?.OnHitboxActivate();
         public void OnHitboxDeactivate() => _receiver?.OnHitboxDeactivate();
+        public void OnDisableGravity() => _gravityDisabled = false;
+        public void OnEnableGravity()
+        {
+            if (!ecsEntityRoot.World.TryGetComponent<MovementStateComponent>(ecsEntityRoot.Entity, out var moveState))
+                return;
 
-        public void OnEnableGravity() => gravityEnabled = true;
-        private void OnDisableGravity() => gravityEnabled = false;
+            if (moveState.IsGrounded)
+                _gravityDisabled = true;
+        }
+
 
         void OnAnimatorMove()
         {
             if (animator != null && characterController != null && _isAttacking)
             {
-                // Extract the motion from the animation
                 Vector3 velocity = animator.deltaPosition;
-                if (gravityEnabled)
+                if (!_gravityDisabled)
                 {
                     var stats = ecsEntityRoot.World.GetComponent<MovementStatsComponent>(ecsEntityRoot.Entity);
-
-                    velocity.y -= stats.Gravity * .1f * Time.fixedDeltaTime;
+                    velocity.y -= stats.Gravity * .35f * Time.fixedDeltaTime;
                 }
-                // Move the Character Controller
                 characterController.Move(velocity);
             }
         }

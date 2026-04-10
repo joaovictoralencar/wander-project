@@ -33,7 +33,11 @@ namespace Wander
             float t = dodge.DodgeDuration > 0f ? dodge.ElapsedTime / dodge.DodgeDuration : 0f;
             float speedMult = _dodgeAccelCurve.Evaluate(t);
 
-            var velocity = new UnityEngine.Vector3(
+            Quaternion targetRot = Quaternion.LookRotation(dodge.Direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 50 * Time.fixedDeltaTime);
+
+
+            var velocity = new Vector3(
                 dodge.Direction.x * dodge.DodgeSpeed * speedMult,
                 state.Velocity.y,
                 dodge.Direction.z * dodge.DodgeSpeed * speedMult);

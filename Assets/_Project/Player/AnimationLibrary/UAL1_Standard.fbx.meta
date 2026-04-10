@@ -1223,7 +1223,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Armature|Sword_Attack_RM
+      name: Attack_Sword_RM
       takeName: Armature|Sword_Attack_RM
       internalID: -7100215807113872425
       firstFrame: 0
@@ -1252,7 +1252,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: 2.Sword_Idle
+      name: Idle_Sword_Loop
       takeName: Armature|Sword_Idle
       internalID: 8324860437086164814
       firstFrame: 0
