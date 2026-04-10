@@ -46,7 +46,7 @@ MonoBehaviour:
     inverseSpriteDirection: 0
   iconPreviewSettings:
     isEnable: 1
-    enhanceVisibility: 1
+    enhanceVisibility: 0
     backgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     gridViewSettings:
       paddingPercentage: 0.2

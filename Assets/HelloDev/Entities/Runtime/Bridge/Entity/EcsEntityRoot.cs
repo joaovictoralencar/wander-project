@@ -46,7 +46,7 @@ namespace HelloDev.Entities
             var allBridges = GetComponentsInChildren<EcsComponentBridge>();
             var bridges = new List<EcsComponentBridge>();
             foreach (var b in allBridges)
-                if (b.GetComponentInParent<EcsEntityRoot>() == this)
+                if (b.GetComponentInParent<EcsEntityRoot>() == this && b.enabled)
                     bridges.Add(b);
 
             // Collect all provided components from bridge [Provides] attributes.

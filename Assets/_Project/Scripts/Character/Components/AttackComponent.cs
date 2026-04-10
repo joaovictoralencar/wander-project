@@ -18,6 +18,7 @@ namespace Wander.Character.Components
 
         [NonSerialized] public float StepDuration;          // clip.length
         [NonSerialized] public float StepDamageMultiplier;  // from ComboStep.DamageMultiplier
+        [NonSerialized] public int   MaxSteps;              // total steps in resolved combo
 
         // ── Flags (set by Animation Events via proxy → bridge) ──
 

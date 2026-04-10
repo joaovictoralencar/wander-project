@@ -55,6 +55,17 @@ namespace Wander.Character.Systems
                     if (attack.ComboWindowOpen && attack.BufferedInput != AttackInputType.None)
                     {
                         int nextStep = attack.CurrentStepIndex + 1;
+
+                        // Bounds check — don't advance past the last step
+                        if (nextStep >= attack.MaxSteps)
+                        {
+                            attack.BufferedInput = AttackInputType.None;
+                            attack.ComboWindowOpen = false;
+                            world.SetComponent(entity, attack);
+                            continue;
+                        }
+
+                        EcsDebug.Log($"[AttackSystem] COMBO ADVANCE step {attack.CurrentStepIndex}→{nextStep} | buffered={attack.BufferedInput}");
                         attack.ComboInputCount++;
                         attack.BufferedInput    = AttackInputType.None;
                         attack.CurrentStepIndex = nextStep;

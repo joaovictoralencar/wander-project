@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HelloDev.Entities;
 using UnityEngine;
+using UnityEngine.Events;
 using Wander.Character.Attack;
 using Wander.Character.Components;
 using Wander.Character.Events;
@@ -13,6 +14,8 @@ namespace Wander.Player
     [Provides(typeof(AttackComponent))]
     public class AttackBridge : EcsComponentBridge, IAttackAnimEventReceiver
     {
+        private static readonly int SwordLayerActivated = Animator.StringToHash("SwordLayerActivated");
+        
         [Header("Combo Data")]
         [SerializeField] private ComboDefinition[] _combos;
 
@@ -21,17 +24,19 @@ namespace Wander.Player
         [SerializeField] private Collider _hitboxCollider;
 
         [Header("Animator Override")]
-        [Tooltip("Name of the placeholder state in the Animator Controller")]
         [SerializeField] private string _attackStateA = "AttackA";
         [SerializeField] private string _attackStateB = "AttackB";
         [SerializeField] private float  _crossFadeDuration = 0.1f;
 
         private AnimatorOverrideController _overrideController;
+        private AnimationClip _slotClipA;
+        private AnimationClip _slotClipB;
         private bool _useStateA = true;
 
         // Input history for combo matching
         private readonly List<AttackInputType> _inputHistory = new();
 
+        private IDisposable _comboStartSub;
         private IDisposable _stepStartedSub;
         private IDisposable _attackEndedSub;
 
@@ -51,13 +56,60 @@ namespace Wander.Player
             {
                 _overrideController = new AnimatorOverrideController(_animator.runtimeAnimatorController);
                 _animator.runtimeAnimatorController = _overrideController;
+                DiscoverAttackSlots();
             }
+        }
+
+        /// <summary>
+        /// Auto-discovers the placeholder clips in the AttackA/AttackB states
+        /// by scanning all layers. No layer name or clip references needed.
+        /// </summary>
+        private void DiscoverAttackSlots()
+        {
+            int stateHashA = Animator.StringToHash(_attackStateA);
+            int stateHashB = Animator.StringToHash(_attackStateB);
+
+            for (int layer = 0; layer < _animator.layerCount; layer++)
+            {
+                if (_slotClipA == null)
+                {
+                    _animator.Play(stateHashA, layer, 0f);
+                    _animator.Update(0f);
+                    var stateInfo = _animator.GetCurrentAnimatorStateInfo(layer);
+                    if (stateInfo.shortNameHash == stateHashA)
+                    {
+                        var clipInfo = _animator.GetCurrentAnimatorClipInfo(layer);
+                        if (clipInfo.Length > 0) _slotClipA = clipInfo[0].clip;
+                    }
+                }
+
+                if (_slotClipB == null)
+                {
+                    _animator.Play(stateHashB, layer, 0f);
+                    _animator.Update(0f);
+                    var stateInfo = _animator.GetCurrentAnimatorStateInfo(layer);
+                    if (stateInfo.shortNameHash == stateHashB)
+                    {
+                        var clipInfo = _animator.GetCurrentAnimatorClipInfo(layer);
+                        if (clipInfo.Length > 0) _slotClipB = clipInfo[0].clip;
+                    }
+                }
+
+                if (_slotClipA != null && _slotClipB != null) break;
+            }
+
+            _animator.Rebind();
+            _animator.Update(0f);
+
+            if (_slotClipA == null || _slotClipB == null)
+                Debug.LogWarning("[AttackBridge] AttackA/AttackB states need placeholder clips for override to work.");
         }
 
         protected override void OnInitialize()
         {
             Add(new AttackComponent());
 
+            _comboStartSub  = World.Subscribe<AttackComboStartEvent>(OnComboStart);
             _stepStartedSub = World.Subscribe<AttackStepStartedEvent>(OnStepStarted);
             _attackEndedSub = World.Subscribe<AttackEndedEvent>(OnAttackEnded);
         }
@@ -74,9 +126,8 @@ namespace Wander.Player
 
         public void OnComboWindowClose()
         {
-            var attack = Get<AttackComponent>();
-            attack.ComboWindowOpen = false;
-            Set(attack);
+            using var attack = Modify<AttackComponent>();
+            attack.Value.ComboWindowOpen = false;
         }
 
         public void OnHitboxActivate()
@@ -93,9 +144,8 @@ namespace Wander.Player
 
         public void OnHitboxDeactivate()
         {
-            var attack = Get<AttackComponent>();
-            attack.HitboxActive = false;
-            Set(attack);
+            using var attack = Modify<AttackComponent>();
+            attack.Value.HitboxActive = false;
 
             if (_hitboxCollider != null)
                 _hitboxCollider.enabled = false;
@@ -103,20 +153,43 @@ namespace Wander.Player
 
         // ── ECS Event Handlers ──
 
+        private void OnComboStart(AttackComboStartEvent e)
+        {
+            if (e.Entity != Entity) return;
+
+            var attack = Get<AttackComponent>();
+            _inputHistory.Clear();
+            int comboIndex = ResolveCombo(attack.ComboInputCount);
+            attack.CurrentComboIndex = comboIndex;
+
+            if (comboIndex < 0 || comboIndex >= _combos.Length)
+            {
+                EndAttack();
+                return;
+            }
+
+            var combo = _combos[comboIndex];
+            if (combo.Steps.Length == 0)
+            {
+                EndAttack();
+                return;
+            }
+
+            var step = combo.Steps[0];
+            attack.StepDuration = step.Clip != null ? step.Clip.length : 0.5f;
+            attack.StepDamageMultiplier = step.DamageMultiplier;
+            attack.MaxSteps = combo.Steps.Length;
+            Set(attack);
+
+            PlayClip(step.Clip);
+        }
+
         private void OnStepStarted(AttackStepStartedEvent e)
         {
             if (e.Entity != Entity) return;
 
             var attack = Get<AttackComponent>();
-
-            // Resolve combo if this is the first step (ComboIndex == -1)
             int comboIndex = e.ComboIndex;
-            if (comboIndex < 0)
-            {
-                _inputHistory.Clear();
-                comboIndex = ResolveCombo(attack.ComboInputCount);
-                attack.CurrentComboIndex = comboIndex;
-            }
 
             if (comboIndex < 0 || comboIndex >= _combos.Length)
             {
@@ -133,8 +206,6 @@ namespace Wander.Player
             }
 
             var step = combo.Steps[stepIndex];
-
-            // Copy per-step data into the component
             attack.StepDuration = step.Clip != null ? step.Clip.length : 0.5f;
             attack.StepDamageMultiplier = step.DamageMultiplier;
             Set(attack);
@@ -145,6 +216,7 @@ namespace Wander.Player
         private void OnAttackEnded(AttackEndedEvent e)
         {
             if (e.Entity != Entity) return;
+            _animator.SetBool(SwordLayerActivated, true);
             EndAttack();
         }
 
@@ -200,10 +272,16 @@ namespace Wander.Player
         {
             if (_overrideController == null || clip == null) return;
 
-            string stateName = _useStateA ? _attackStateA : _attackStateB;
-            _overrideController[stateName] = clip;
+            var slotClip  = _useStateA ? _slotClipA  : _slotClipB;
+            var stateName = _useStateA ? _attackStateA : _attackStateB;
+
+            if (slotClip == null) return;
+
+            _overrideController[slotClip] = clip;
+            _animator.Update(0f);
             _animator.CrossFadeInFixedTime(stateName, _crossFadeDuration);
             _useStateA = !_useStateA;
+            _animator.SetBool("SwordLayerActivated", false);
         }
 
         // ── Push / Pull ──
@@ -243,6 +321,7 @@ namespace Wander.Player
 
         protected override void OnDestroy()
         {
+            _comboStartSub?.Dispose();
             _stepStartedSub?.Dispose();
             _attackEndedSub?.Dispose();
             base.OnDestroy();

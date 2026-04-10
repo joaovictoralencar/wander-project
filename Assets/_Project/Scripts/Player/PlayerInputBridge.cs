@@ -60,7 +60,7 @@ namespace Wander.Player
             Set(new MoveInputComponent
             {
                 Direction = direction,
-                Sprint = _sprint,
+                Sprint = true,
                 Jump = _jumpPressed,
                 Dodge = _dodgePressed,
                 AttackInput = _attackInputType,
