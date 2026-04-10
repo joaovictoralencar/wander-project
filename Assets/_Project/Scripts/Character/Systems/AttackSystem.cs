@@ -134,8 +134,11 @@ namespace Wander.Character.Systems
                 if (attack.BufferedInput != AttackInputType.None)
                 {
                     bool isGrounded = !world.TryGetComponent<MovementStateComponent>(entity, out var moveState) || moveState.IsGrounded;
+                    bool isDodging = world.TryGetComponent(entity, out DodgeComponent dodge) && dodge.IsDodging;
 
-                    if (isGrounded)
+                    var canAttack = isGrounded && !isDodging;
+
+                    if (canAttack)
                     {
                         attack.IsAttacking      = true;
                         attack.CurrentStepIndex = 0;

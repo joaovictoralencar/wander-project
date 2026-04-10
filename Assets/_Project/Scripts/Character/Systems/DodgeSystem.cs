@@ -86,14 +86,14 @@ namespace Wander.Character.Systems
                 else
                 {
                     //Player has buffered the dodge input for too long
-                    if (dodgeBufferTime > 0.2f)
+                    if (dodgeBufferTime > dodge.DodgeMaxBufferTime)
                     {
                         wantsToDodge = false;
                         dodgeBufferTime = 0f;
                         continue;
                     }
 
-                    EcsDebug.Log($"<color=yellow>COYOTE</color> Dodge buffered! Entity({entity.Id}");
+                    EcsDebug.Log($"<color=yellow>COYOTE</color> Dodge buffered! Entity({entity.Id})");
                 }
 
                 // Need grounded check — read from MovementStateComponent if present

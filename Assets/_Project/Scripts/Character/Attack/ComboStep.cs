@@ -12,6 +12,7 @@ namespace Wander.Character.Attack
 
         [Header("Damage")] [Tooltip("Multiplied by CombatStatsComponent.BaseDamage at hit time")]
         public float DamageMultiplier = 1f;
-        
+
+        public float EndStepFraction = .9f;
     }
 }

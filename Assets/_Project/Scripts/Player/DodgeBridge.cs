@@ -10,7 +10,7 @@ namespace Wander
     [Provides(typeof(DodgeComponent))]
     public class DodgeBridge : EcsComponentBridge
     {
-        [SerializeField] private DodgeComponent _dodge = new() { DodgeDuration = 0.4f, DodgeSpeed = 8f, Cooldown = 0.5f };
+        [SerializeField] private DodgeComponent _dodge = new() { DodgeDuration = 0.4f, DodgeSpeed = 8f, Cooldown = 0.5f, DodgeMaxBufferTime = 0.35f };
         [SerializeField] private AnimationCurve _dodgeAccelCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
         [SerializeField] private CharacterController _characterController;
 

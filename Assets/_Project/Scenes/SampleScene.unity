@@ -1688,6 +1688,7 @@ MonoBehaviour:
     DodgeDuration: 0.7
     DodgeSpeed: 12
     Cooldown: 0.25
+    DodgeMaxBufferTime: 0.35
   _dodgeAccelCurve:
     serializedVersion: 2
     m_Curve:
@@ -1726,9 +1727,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WanderProject::Wander.Player.AttackBridge
   _combos:
-  - {fileID: 11400000, guid: 70751a76857f30740ba66333c166fcdf, type: 2}
+  - {fileID: 11400000, guid: b1ca6ce44bade7e40af79ddf585307e7, type: 2}
   _attack:
-    RecoveryFraction: 5
+    RecoveryFraction: 0.1
   _animator: {fileID: 1745685703}
   _hitboxCollider: {fileID: 69089418}
   _attackStateA: AttackA

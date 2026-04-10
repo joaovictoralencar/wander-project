@@ -10,6 +10,8 @@ namespace Wander
         public float DodgeDuration;
         public float DodgeSpeed;
         public float Cooldown;
+        public float DodgeMaxBufferTime;
+
 
         // Runtime state — not serialized
         [NonSerialized] public bool   IsDodging;

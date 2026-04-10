@@ -13,17 +13,17 @@ MonoBehaviour:
   m_Name: SO_Combo_Light_Simple_2
   m_EditorClassIdentifier: WanderProject::Wander.Character.Attack.ComboDefinition
   ComboName: Simple
-  InputPattern: 010101
+  InputPattern: 010102
   Steps:
-  - Clip: {fileID: -7041467518096675105, guid: 8b9196642523f0341906744006a100de, type: 3}
+  - Clip: {fileID: 3625414872004886998, guid: 8b9196642523f0341906744006a100de, type: 3}
     PlayRate: 0.7
     DamageMultiplier: 1
-  - Clip: {fileID: -4735572020387228780, guid: 8b9196642523f0341906744006a100de, type: 3}
+    EndStepFraction: 0.9
+  - Clip: {fileID: -1662512729948635066, guid: 8b9196642523f0341906744006a100de, type: 3}
     PlayRate: 0.7
-    DamageMultiplier: 1
-  - Clip: {fileID: 6605599246676969631, guid: 8b9196642523f0341906744006a100de, type: 3}
+    DamageMultiplier: 1.2
+    EndStepFraction: 0.9
+  - Clip: {fileID: 543990450412311274, guid: 8b9196642523f0341906744006a100de, type: 3}
     PlayRate: 0.8
-    DamageMultiplier: 1
-  - Clip: {fileID: 6486066781156678199, guid: 8b9196642523f0341906744006a100de, type: 3}
-    PlayRate: 0.85
-    DamageMultiplier: 1
+    DamageMultiplier: 1.4
+    EndStepFraction: 0.9

@@ -80,10 +80,10 @@ namespace Wander.Player
                 {
                     _animator.Play(stateHashA, layer, 0f);
                     _animator.Update(0f);
-                    var stateInfo = _animator.GetCurrentAnimatorStateInfo(layer);
+                    AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(layer);
                     if (stateInfo.shortNameHash == stateHashA)
                     {
-                        var clipInfo = _animator.GetCurrentAnimatorClipInfo(layer);
+                        AnimatorClipInfo[] clipInfo = _animator.GetCurrentAnimatorClipInfo(layer);
                         if (clipInfo.Length > 0) _slotClipA = clipInfo[0].clip;
                     }
                 }
@@ -92,10 +92,10 @@ namespace Wander.Player
                 {
                     _animator.Play(stateHashB, layer, 0f);
                     _animator.Update(0f);
-                    var stateInfo = _animator.GetCurrentAnimatorStateInfo(layer);
+                    AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(layer);
                     if (stateInfo.shortNameHash == stateHashB)
                     {
-                        var clipInfo = _animator.GetCurrentAnimatorClipInfo(layer);
+                        AnimatorClipInfo[] clipInfo = _animator.GetCurrentAnimatorClipInfo(layer);
                         if (clipInfo.Length > 0) _slotClipB = clipInfo[0].clip;
                     }
                 }
@@ -123,7 +123,7 @@ namespace Wander.Player
 
         public void OnComboWindowOpen()
         {
-            var attack = Get<AttackComponent>();
+            AttackComponent attack = Get<AttackComponent>();
             if (!attack.IsAttacking) return;
             attack.ComboWindowOpen = true;
             Set(attack);
@@ -131,13 +131,13 @@ namespace Wander.Player
 
         public void OnComboWindowClose()
         {
-            using var attack = Modify<AttackComponent>();
+            using ComponentScope<AttackComponent> attack = Modify<AttackComponent>();
             attack.Value.ComboWindowOpen = false;
         }
 
         public void OnHitboxActivate()
         {
-            var attack = Get<AttackComponent>();
+            AttackComponent attack = Get<AttackComponent>();
             if (!attack.IsAttacking) return;
             attack.HitboxActive = true;
             attack.HitLanded = false;
@@ -149,7 +149,7 @@ namespace Wander.Player
 
         public void OnHitboxDeactivate()
         {
-            using var attack = Modify<AttackComponent>();
+            using ComponentScope<AttackComponent> attack = Modify<AttackComponent>();
             attack.Value.HitboxActive = false;
 
             if (_hitboxCollider != null)
@@ -162,7 +162,7 @@ namespace Wander.Player
         {
             if (e.Entity != Entity) return;
 
-            var attack = Get<AttackComponent>();
+            AttackComponent attack = Get<AttackComponent>();
             _inputHistory.Clear();
             int comboIndex = ResolveCombo(attack.ComboInputCount);
             attack.CurrentComboIndex = comboIndex;
@@ -173,29 +173,34 @@ namespace Wander.Player
                 return;
             }
 
-            var combo = _combos[comboIndex];
+            ComboDefinition combo = _combos[comboIndex];
             if (combo.Steps.Length == 0)
             {
                 EndAttack();
                 return;
             }
 
-            var step = combo.Steps[0];
-            float rate = step.PlayRate > 0f ? step.PlayRate : 1f;
-            attack.StepDuration = (step.Clip != null ? step.Clip.length : 0.5f) / rate;
-            attack.StepDuration *= .9f; // added slightly delay to make sure the attack animation doesn't go until the end of the clip for steps
-            attack.StepDamageMultiplier = step.DamageMultiplier;
+            ComboStep step = combo.Steps[0];
+            SetupStep(step, ref attack);
             attack.MaxSteps = combo.Steps.Length;
             Set(attack);
 
             PlayClip(step.Clip, step.PlayRate);
         }
 
+        private static void SetupStep(ComboStep step, ref AttackComponent attack)
+        {
+            float rate = step.PlayRate > 0f ? step.PlayRate : 1f;
+            attack.StepDuration = (step.Clip != null ? step.Clip.length : 0.5f) / rate;
+            attack.StepDuration *= step.EndStepFraction; // added slightly delay to make sure the attack animation doesn't go until the end of the clip for steps
+            attack.StepDamageMultiplier = step.DamageMultiplier;
+        }
+
         private void OnStepStarted(AttackStepStartedEvent e)
         {
             if (e.Entity != Entity) return;
 
-            var attack = Get<AttackComponent>();
+            AttackComponent attack = Get<AttackComponent>();
             int comboIndex = e.ComboIndex;
 
             if (comboIndex < 0 || comboIndex >= _combos.Length)
@@ -204,7 +209,7 @@ namespace Wander.Player
                 return;
             }
 
-            var combo = _combos[comboIndex];
+            ComboDefinition combo = _combos[comboIndex];
             int stepIndex = e.StepIndex;
             if (stepIndex >= combo.Steps.Length)
             {
@@ -212,10 +217,8 @@ namespace Wander.Player
                 return;
             }
 
-            var step = combo.Steps[stepIndex];
-            float rate = step.PlayRate > 0f ? step.PlayRate : 1f;
-            attack.StepDuration = (step.Clip != null ? step.Clip.length : 0.5f) / rate;
-            attack.StepDamageMultiplier = step.DamageMultiplier;
+            ComboStep step = combo.Steps[stepIndex];
+            SetupStep(step, ref attack);
             Set(attack);
 
             PlayClip(step.Clip, step.PlayRate);
@@ -250,7 +253,7 @@ namespace Wander.Player
 
             for (int c = 0; c < _combos.Length; c++)
             {
-                var pattern = _combos[c].InputPattern;
+                AttackInputType[] pattern = _combos[c].InputPattern;
                 if (pattern == null || pattern.Length == 0) continue;
                 if (_inputHistory.Count > pattern.Length) continue;
 
@@ -279,8 +282,8 @@ namespace Wander.Player
         {
             if (_overrideController == null || clip == null) return;
 
-            var slotClip = _useStateA ? _slotClipA : _slotClipB;
-            var stateName = _useStateA ? _attackStateA : _attackStateB;
+            AnimationClip slotClip = _useStateA ? _slotClipA : _slotClipB;
+            string stateName = _useStateA ? _attackStateA : _attackStateB;
 
             if (slotClip == null) return;
 
@@ -296,7 +299,7 @@ namespace Wander.Player
 
         protected override void OnPushToEcs()
         {
-            var input = Get<MoveInputComponent>();
+            MoveInputComponent input = Get<MoveInputComponent>();
             TrackInput(input.AttackInput);
         }
 
@@ -308,16 +311,16 @@ namespace Wander.Player
 
         private void OnTriggerEnter(Collider other)
         {
-            var attack = Get<AttackComponent>();
+            AttackComponent attack = Get<AttackComponent>();
             if (!attack.HitboxActive || attack.HitLanded) return;
 
-            var targetRoot = other.GetComponentInParent<EcsEntityRoot>();
+            EcsEntityRoot targetRoot = other.GetComponentInParent<EcsEntityRoot>();
             if (targetRoot == null || targetRoot.Entity == Entity) return;
 
             attack.HitLanded = true;
             Set(attack);
 
-            var stats = Get<CombatStatsComponent>();
+            CombatStatsComponent stats = Get<CombatStatsComponent>();
             float finalDamage = (stats.BaseDamage + stats.BonusDamage)
                                 * attack.StepDamageMultiplier;
 
